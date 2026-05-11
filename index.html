@@ -59,6 +59,12 @@ tr:hover td { background:#fffaf0; }
 .mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
 .saved-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+[hidden] { display:none !important; }
+.modal-backdrop { position:fixed; inset:0; background:rgba(7,24,50,.58); z-index:10; display:flex; align-items:center; justify-content:center; padding:18px; }
+.modal-panel { width:min(900px, 100%); max-height:86vh; overflow:auto; background:#fff; border-radius:10px; border:1px solid var(--line); box-shadow:0 22px 60px rgba(0,0,0,.28); padding:16px; }
+.modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.modal-head h2 { margin:0 0 4px; font-size:18px; }
+.code-table { min-width:720px; }
 @media (max-width:900px) { .grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); } main { padding:12px; } .brand-bar { padding:18px 16px; } header h1 { font-size:24px; } .logo-mark { width:48px; height:48px; } }
 </style>
 </head>
@@ -89,9 +95,10 @@ tr:hover td { background:#fffaf0; }
       <button class="secondary" onclick="emailCurrentViewOutlook()">Outlook CSV Draft</button>
       <button class="secondary" onclick="generatePdfAndEmailOutlook()">Outlook PDF Draft</button>
       <button class="secondary" onclick="createShareableCopy()">Create Shareable Copy</button>
+      <button class="secondary" onclick="openOfferCodeManager()">Manage Offer Codes</button>
       <button class="danger" onclick="clearUploadedRows()">Clear Current Rows</button>
     </div>
-    <div class="notice">This page starts fresh each time you open or refresh it. Upload the current offer PDFs whenever you want to rebuild the tables.</div>
+    <div class="notice">Loaded offers stay in this browser until you clear them or remove offer codes. Use Create Shareable Copy when you want a standalone HTML file with the current offers embedded.</div>
     <div id="uploadProgress" class="progress"></div>
   </section>
 
@@ -131,11 +138,24 @@ tr:hover td { background:#fffaf0; }
     <div class="table-wrap" style="max-height:38vh;"><table id="savedTable"></table></div>
   </section>
 </main>
+<div id="offerCodeModal" class="modal-backdrop" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <h2>Manage Offer Codes</h2>
+        <div class="small">Remove expired offers from the loaded website data.</div>
+      </div>
+      <button class="secondary" onclick="closeOfferCodeManager()">Close</button>
+    </div>
+    <div class="table-wrap" style="max-height:60vh;"><table id="offerCodeTable" class="code-table"></table></div>
+  </div>
+</div>
 <script>
 const EMBEDDED_SESSION_ROWS = [];
 const EMBEDDED_SAVED_OFFERS = [];
+const ROW_STORAGE_KEY = 'clubRoyaleCurrentOfferRows_v2';
+const SAVED_STORAGE_KEY = 'clubRoyaleSavedOffers_v2';
 let sessionRows = [];
-try { localStorage.removeItem('clubRoyaleUploadedOfferRows_v1'); } catch(e) {}
 let currentView = 'individual';
 let sortState = { key: 'Sail Date', dir: 1 };
 let savedOffers = [];
@@ -143,7 +163,7 @@ let savedOffers = [];
 function uploadedRows() {
   return sessionRows;
 }
-function saveUploaded(rows) { sessionRows = rows.map(cleanRow); }
+function saveUploaded(rows) { sessionRows = rows.map(cleanRow); saveCurrentState(); }
 function allRows() { return sessionRows.map(cleanRow); }
 function cleanRow(r) {
   const row = {...r};
@@ -685,8 +705,71 @@ function parseOfferText(text, filename, owner) {
 }
 function clearUploadedRows() {
   if (confirm('Clear all offer rows uploaded during this browser session?')) {
-    sessionRows = []; document.getElementById('uploadProgress').textContent='Current rows cleared.'; render();
+    sessionRows = []; savedOffers = []; saveCurrentState(); document.getElementById('uploadProgress').textContent='Current rows cleared.'; render();
   }
+}
+function openOfferCodeManager() {
+  renderOfferCodeManager();
+  document.getElementById('offerCodeModal').hidden = false;
+}
+function closeOfferCodeManager() {
+  document.getElementById('offerCodeModal').hidden = true;
+}
+function renderOfferCodeManager() {
+  const table = document.getElementById('offerCodeTable');
+  const summaries = offerCodeSummaries();
+  if (!summaries.length) {
+    table.innerHTML = '<tbody><tr><td class="small">No offers are currently loaded.</td></tr></tbody>';
+    return;
+  }
+  table.innerHTML = '<thead><tr><th>Offer Code</th><th>Main Offer</th><th>Rows</th><th>Owner(s)</th><th>Sail Dates</th><th>Remove</th></tr></thead><tbody>' +
+    summaries.map(s => `<tr>
+      <td>${escapeHtml(s.code)}</td>
+      <td>${escapeHtml(s.main)}</td>
+      <td>${s.count.toLocaleString()}</td>
+      <td>${escapeHtml(s.owners)}</td>
+      <td>${escapeHtml(s.dateRange)}</td>
+      <td><button class="mini-button danger" onclick="removeOfferCode('${escapeHtml(s.code)}')">Remove</button></td>
+    </tr>`).join('') + '</tbody>';
+}
+function offerCodeSummaries() {
+  const groups = new Map();
+  sessionRows.forEach(r => {
+    const row = cleanRow(r);
+    const code = row['Offer Code'];
+    if (!code) return;
+    if (!groups.has(code)) groups.set(code, {code, main: row['Main Offer'], count:0, owners:new Set(), dates:[]});
+    const g = groups.get(code);
+    g.count += 1;
+    if (row['Person']) g.owners.add(row['Person']);
+    if (row['Sail Date']) g.dates.push(row['Sail Date']);
+  });
+  return [...groups.values()].map(g => {
+    const dates = [...new Set(g.dates)].sort();
+    return {
+      code: g.code,
+      main: g.main,
+      count: g.count,
+      owners: [...g.owners].sort().join(', '),
+      dateRange: dates.length ? `${displayDate(dates[0])} - ${displayDate(dates[dates.length - 1])}` : ''
+    };
+  }).sort((a,b) => a.code.localeCompare(b.code));
+}
+function removeOfferCode(code) {
+  const normalized = normalizeOfferCode(code);
+  const count = sessionRows.filter(r => normalizeOfferCode(r['Offer Code']) === normalized).length;
+  if (!count) return;
+  if (!confirm(`Remove ${count.toLocaleString()} row(s) for offer code ${normalized}?`)) return;
+  sessionRows = sessionRows.filter(r => normalizeOfferCode(r['Offer Code']) !== normalized);
+  savedOffers = savedOffers.filter(r => !savedOfferUsesCode(r, normalized));
+  saveCurrentState();
+  renderOfferCodeManager();
+  render();
+}
+function savedOfferUsesCode(row, code) {
+  return [row['Offer Code'], row['Greg Offer Code'], row['Janet Offer Code']]
+    .filter(Boolean)
+    .some(v => String(v).split(/\s*\/\s*|\s*;\s*/).some(part => normalizeOfferCode(part) === code));
 }
 function createShareableCopy() {
   if (!sessionRows.length) { alert('Upload offer PDFs first, then create the shareable copy.'); return; }
@@ -716,6 +799,7 @@ function saveOfferFromCurrentView(index) {
   const row = filteredRows()[index];
   if (!row || isOfferSaved(row)) return;
   savedOffers.push(savedOfferSnapshot(row));
+  saveCurrentState();
   render();
 }
 function savedOfferSnapshot(row) {
@@ -750,6 +834,7 @@ function isOfferSaved(row) {
 }
 function removeSavedOffer(key) {
   savedOffers = savedOffers.filter(r => r['_savedKey'] !== key);
+  saveCurrentState();
   renderSavedOffers();
   render();
 }
@@ -757,6 +842,7 @@ function clearSavedOffers() {
   if (!savedOffers.length) return;
   if (confirm('Clear the saved offer list?')) {
     savedOffers = [];
+    saveCurrentState();
     render();
   }
 }
@@ -972,9 +1058,35 @@ function viewName(view) {
   })[view] || view;
 }
 function csvCell(v) { v = String(v ?? ''); return /[\",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; }
+function saveCurrentState() {
+  try {
+    localStorage.setItem(ROW_STORAGE_KEY, JSON.stringify(sessionRows.map(cleanRow)));
+    localStorage.setItem(SAVED_STORAGE_KEY, JSON.stringify(savedOffers));
+  } catch(e) {}
+}
+function readStoredRows() {
+  try {
+    const rows = JSON.parse(localStorage.getItem(ROW_STORAGE_KEY) || '[]');
+    return Array.isArray(rows) ? rows : [];
+  } catch(e) {
+    return [];
+  }
+}
+function readStoredSavedOffers() {
+  try {
+    const rows = JSON.parse(localStorage.getItem(SAVED_STORAGE_KEY) || '[]');
+    return Array.isArray(rows) ? rows : [];
+  } catch(e) {
+    return [];
+  }
+}
 function loadEmbeddedData() {
-  if (Array.isArray(EMBEDDED_SESSION_ROWS) && EMBEDDED_SESSION_ROWS.length) sessionRows = EMBEDDED_SESSION_ROWS.map(cleanRow);
-  if (Array.isArray(EMBEDDED_SAVED_OFFERS) && EMBEDDED_SAVED_OFFERS.length) savedOffers = EMBEDDED_SAVED_OFFERS.map(r => ({...r}));
+  const storedRows = readStoredRows();
+  const storedSaved = readStoredSavedOffers();
+  if (storedRows.length) sessionRows = storedRows.map(cleanRow);
+  else if (Array.isArray(EMBEDDED_SESSION_ROWS) && EMBEDDED_SESSION_ROWS.length) sessionRows = EMBEDDED_SESSION_ROWS.map(cleanRow);
+  if (storedSaved.length) savedOffers = storedSaved.map(r => ({...r}));
+  else if (Array.isArray(EMBEDDED_SAVED_OFFERS) && EMBEDDED_SAVED_OFFERS.length) savedOffers = EMBEDDED_SAVED_OFFERS.map(r => ({...r}));
 }
 loadEmbeddedData();
 render();
