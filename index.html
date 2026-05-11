@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Greg + Janet Club Royale Offer Matcher</title>
+<style>
+:root {
+  --bg:#eef2f8; --panel:#ffffff; --text:#071832; --muted:#58657a; --line:#cfd8e8;
+  --brand:#001871; --brand2:#e7edf8; --gold:#f6c85f; --gold2:#fff4cf;
+  --green:#0f6b3e; --greenbg:#dff6e9; --orange:#956019; --orangebg:#fff0d2;
+  --red:#991b1b; --redbg:#fee2e2; --shadow:0 16px 34px rgba(0,24,113,.12);
+}
+* { box-sizing: border-box; }
+body { margin:0; font-family: Arial, Helvetica, sans-serif; background:linear-gradient(180deg,#f8fbff 0,#eef2f8 260px,#e7edf7 100%); color:var(--text); }
+header { background:linear-gradient(135deg,#001247 0%,#001871 48%,#003b88 100%); color:#fff; padding:0; border-bottom:5px solid var(--gold); box-shadow:0 12px 30px rgba(0,24,113,.22); }
+.brand-bar { display:flex; align-items:center; gap:16px; padding:24px 28px; max-width:1500px; margin:0 auto; }
+.logo-mark { width:56px; height:56px; border-radius:50%; background:#fff; border:2px solid rgba(246,200,95,.95); padding:10px; box-shadow:0 8px 20px rgba(0,0,0,.22); flex:0 0 auto; }
+.brand-text { min-width:0; }
+.eyebrow { margin:0 0 4px; color:var(--gold); font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+header h1 { margin:0 0 6px; font-size:30px; letter-spacing:.01em; }
+header p { margin:0; opacity:.9; font-size:14px; }
+main { padding:18px 24px 40px; max-width: 1500px; margin:0 auto; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); padding:16px; margin-bottom:16px; }
+.grid { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:12px; }
+.stat { background:linear-gradient(180deg,#fff 0%,#f7f9fd 100%); border:1px solid var(--line); border-top:4px solid var(--gold); border-radius:8px; padding:14px; }
+.stat .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
+.stat .value { color:var(--brand); font-size:26px; font-weight:800; margin-top:5px; }
+.controls { display:flex; flex-wrap:wrap; gap:10px; align-items:end; }
+.control { display:flex; flex-direction:column; gap:5px; }
+label { font-size:12px; color:var(--muted); font-weight:700; }
+input, select, button { font-family: Arial, Helvetica, sans-serif; font-size:14px; }
+input[type="text"], select { padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; min-width:150px; }
+input[type="text"]:focus, select:focus { outline:2px solid rgba(246,200,95,.55); border-color:var(--brand); }
+input[type="file"] { padding:8px; border:1px dashed #9fb0cf; border-radius:6px; background:#f9fbff; max-width:350px; }
+button { border:1px solid var(--brand); background:var(--brand); color:#fff; border-radius:6px; padding:9px 12px; cursor:pointer; font-weight:800; }
+button:hover { filter:brightness(1.08); }
+button.secondary { background:#fff; color:var(--brand); border-color:#8090bd; }
+button.danger { border-color:#9f1d1d; background:#9f1d1d; }
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.tab { background:#fff; color:var(--brand); border:1px solid #aab6d1; }
+.tab.active { background:var(--brand); color:#fff; border-color:var(--brand); box-shadow:inset 0 -3px 0 var(--gold); }
+.table-wrap { overflow:auto; border:1px solid var(--line); border-radius:8px; max-height:68vh; background:#fff; }
+table { width:100%; border-collapse:separate; border-spacing:0; min-width:1050px; }
+th, td { border-bottom:1px solid var(--line); padding:8px 10px; font-size:13px; text-align:left; vertical-align:top; }
+th { position:sticky; top:0; background:#071832; color:#fff; z-index:1; cursor:pointer; white-space:nowrap; border-bottom:3px solid var(--gold); }
+tr:hover td { background:#fffaf0; }
+.badge { display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:700; white-space:nowrap; }
+.badge.green { background:var(--greenbg); color:var(--green); }
+.badge.orange { background:var(--orangebg); color:var(--orange); }
+.badge.blue { background:var(--brand2); color:var(--brand); }
+.badge.red { background:var(--redbg); color:var(--red); }
+.help { color:var(--muted); font-size:13px; line-height:1.45; }
+.notice { padding:10px 12px; border-radius:8px; background:var(--gold2); border:1px solid #e4bb59; color:#63430d; font-size:13px; margin-top:10px; }
+.small { font-size:12px; color:var(--muted); }
+.progress { margin-top:8px; color:var(--muted); font-size:13px; white-space:pre-wrap; }
+.royal-link { color:var(--brand); font-weight:700; text-decoration:none; white-space:nowrap; }
+.royal-link:hover { text-decoration:underline; }
+.mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
+.mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
+.saved-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+@media (max-width:900px) { .grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); } main { padding:12px; } .brand-bar { padding:18px 16px; } header h1 { font-size:24px; } .logo-mark { width:48px; height:48px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand-bar">
+    <img class="logo-mark" src="royal-logo.svg" alt="Royal Caribbean crown and anchor logo" />
+    <div class="brand-text">
+      <p class="eyebrow">Royal Caribbean</p>
+      <h1>Club Royale Casino Offer Matcher</h1>
+      <p>View Greg and Janet offers, Alaska sailings, household matches, and expected stateroom upgrades.</p>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="card">
+    <div class="grid" id="stats"></div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin:0 0 8px;font-size:18px;">Upload New Offer PDFs</h2>
+    <div class="help">Choose whether the files belong to Greg or Janet, then upload one or more Club Royale offer PDFs. New rows are parsed in your browser and kept only until this page is closed or refreshed. Matching logic uses the main offer family, so 26WCR304 and 26WCR307 match as 26WCR. 26TIER3 and 2605C05 are kept as their own offer families.</div>
+    <div class="controls" style="margin-top:12px;">
+      <div class="control"><label>Owner</label><select id="uploadOwner"><option>Greg</option><option>Janet</option></select></div>
+      <div class="control"><label>Offer PDF files</label><input id="fileInput" type="file" accept="application/pdf,.pdf" multiple /></div>
+      <button onclick="parseUploads()">Parse & Add Offers</button>
+      <button class="secondary" onclick="generateCurrentViewPdf()">Generate Current View PDF</button>
+      <button class="secondary" onclick="emailCurrentViewOutlook()">Outlook CSV Draft</button>
+      <button class="secondary" onclick="generatePdfAndEmailOutlook()">Outlook PDF Draft</button>
+      <button class="secondary" onclick="createShareableCopy()">Create Shareable Copy</button>
+      <button class="danger" onclick="clearUploadedRows()">Clear Current Rows</button>
+    </div>
+    <div class="notice">This page starts fresh each time you open or refresh it. Upload the current offer PDFs whenever you want to rebuild the tables.</div>
+    <div id="uploadProgress" class="progress"></div>
+  </section>
+
+  <section class="card">
+    <div class="tabs">
+      <button class="tab active" data-view="individual" onclick="setView('individual')">Individual Offers</button>
+      <button class="tab" data-view="alaskaIndividual" onclick="setView('alaskaIndividual')">Alaska Individual Offers</button>
+      <button class="tab" data-view="matches" onclick="setView('matches')">Matching Offers</button>
+      <button class="tab" data-view="alaskaMatches" onclick="setView('alaskaMatches')">Matching Alaska Offers</button>
+    </div>
+    <div class="controls" style="margin-bottom:12px;">
+      <div class="control"><label>Owner</label><select id="personFilter" onchange="render()"><option value="">All</option><option>Greg</option><option>Janet</option></select></div>
+      <div class="control"><label>Main Offer</label><select id="mainOfferFilter" onchange="render()"><option value="">All</option></select></div>
+      <div class="control"><label>Sail Month</label><select id="monthFilter" onchange="render()"><option value="">All</option></select></div>
+      <div class="control"><label>Cruise Length</label><select id="lengthFilter" onchange="render()"><option value="">All</option></select></div>
+      <div class="control"><label>Room Group</label><select id="roomFilter" onchange="render()"><option value="">All</option><option>Interior</option><option>Ocean View</option><option>Balcony</option><option>Junior Suite</option></select></div>
+      <div class="control"><label>Departure Port</label><select id="portFilter" onchange="render()"><option value="">All</option></select></div>
+      <div class="control"><label>Ship</label><select id="shipFilter" onchange="render()"><option value="">All</option></select></div>
+      <div class="control"><label>Sort Offers</label><select id="sortFilter" onchange="render()"><option value="">Sail Date</option><option value="portShip">Departure Port, then Ship</option><option value="shipPort">Ship, then Departure Port</option></select></div>
+      <button class="secondary" onclick="resetFilters()">Reset Filters</button>
+    </div>
+    <div class="small" id="resultCount"></div>
+    <div class="table-wrap"><table id="dataTable"></table></div>
+  </section>
+
+  <section class="card">
+    <div class="saved-list-head">
+      <div>
+        <h2 style="margin:0 0 4px;font-size:18px;">Saved Offer List</h2>
+        <div class="small" id="savedCount">0 offer(s) saved</div>
+      </div>
+      <div class="controls">
+        <button class="secondary" onclick="generateSavedOffersPdf()">Generate Saved List PDF</button>
+        <button class="danger" onclick="clearSavedOffers()">Clear Saved List</button>
+      </div>
+    </div>
+    <div class="table-wrap" style="max-height:38vh;"><table id="savedTable"></table></div>
+  </section>
+</main>
+<script>
+const EMBEDDED_SESSION_ROWS = [];
+const EMBEDDED_SAVED_OFFERS = [];
+let sessionRows = [];
+try { localStorage.removeItem('clubRoyaleUploadedOfferRows_v1'); } catch(e) {}
+let currentView = 'individual';
+let sortState = { key: 'Sail Date', dir: 1 };
+let savedOffers = [];
+
+function uploadedRows() {
+  return sessionRows;
+}
+function saveUploaded(rows) { sessionRows = rows.map(cleanRow); }
+function allRows() { return sessionRows.map(cleanRow); }
+function cleanRow(r) {
+  const row = {...r};
+  row['Person'] = row['Person'] || '';
+  row['Offer Code'] = normalizeOfferCode(row['Offer Code'] || '');
+  row['Main Offer'] = row['Main Offer'] || mainOffer(row['Offer Code']);
+  row['Sail Date'] = normalizeDate(row['Sail Date']);
+  row['Ship'] = titleCaseShip(row['Ship'] || '');
+  row['Departure Port'] = (row['Departure Port'] || '').replace(/\s+/g,' ').trim();
+  row['Itinerary'] = normalizeItineraryDisplay(row['Itinerary'] || '');
+  row['Room Type'] = normalizeRoomType(row['Room Type'] || '');
+  row['Room Group'] = roomGroup(row['Room Type']);
+  row['Offer Type'] = row['Offer Type'] || 'Cruise Fare For 2 Guests';
+  row['Alaska?'] = isAlaska(row) ? 'Yes' : 'No';
+  row['Vancouver/Seattle Alaska?'] = (row['Alaska?']==='Yes' && /vancouver|seattle/i.test(row['Departure Port'])) ? 'Yes' : 'No';
+  return row;
+}
+function normalizeOfferCode(code) { return String(code||'').replace(/[^A-Za-z0-9]/g,'').toUpperCase(); }
+function mainOffer(code) {
+  code = normalizeOfferCode(code);
+  if (!code) return '';
+  if (code === '26TIER3') return '26TIER3';
+  if (code === '2605C05') return '2605C05';
+  const m = code.match(/^(26[A-Z]{3})\d{3}$/);
+  return m ? m[1] : code;
+}
+function normalizeDate(v) {
+  if (!v) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  const d = new Date(v);
+  if (!isNaN(d)) return d.toISOString().slice(0,10);
+  return v;
+}
+function displayDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+function titleCaseShip(s) {
+  return String(s).replace(/®/g,'').replace(/\s+/g,' ').trim().replace(/\b\w+/g, w => ['of','the'].includes(w.toLowerCase()) ? w.toLowerCase() : w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).replace(/\bOf\b/g,'of').replace(/\bThe\b/g,'the');
+}
+function normalizeItineraryDisplay(s) {
+  return String(s||'').replace(/Advenighture/gi,'Adventure').replace(/\bGlac\b/gi,'Glacier').replace(/\s+/g,' ').trim();
+}
+function itineraryTitle(row) {
+  return String(row['Itinerary'] || '').replace(/^\s*\d+\s*Night\s+/i, '').trim();
+}
+function normalizeRoomType(s) {
+  s = String(s||'').replace(/Oceanview/gi,'Ocean View').replace(/\s+/g,' ').trim();
+  if (/junior/i.test(s)) return /gty/i.test(s) ? 'Junior Suite - GTY' : 'Junior Suite';
+  if (/balcony/i.test(s)) return /gty/i.test(s) ? 'Balcony - GTY' : 'Balcony';
+  if (/ocean\s*view/i.test(s)) return /gty/i.test(s) ? 'Ocean View - GTY' : 'Ocean View';
+  if (/interior/i.test(s)) return /gty/i.test(s) ? 'Interior - GTY' : 'Interior';
+  return s;
+}
+function roomGroup(room) {
+  if (/junior/i.test(room)) return 'Junior Suite';
+  if (/balcony/i.test(room)) return 'Balcony';
+  if (/ocean\s*view|oceanview/i.test(room)) return 'Ocean View';
+  if (/interior/i.test(room)) return 'Interior';
+  return room || '';
+}
+const roomRank = {'Interior':1,'Ocean View':2,'Balcony':3,'Junior Suite':4};
+const rankRoom = r => roomRank[roomGroup(r)] || 0;
+const roomByRank = {1:'Interior',2:'Ocean View',3:'Balcony',4:'Junior Suite'};
+const ROYAL_SHIP_NAMES = [
+  'Adventure', 'Allure', 'Anthem', 'Brilliance', 'Enchantment', 'Explorer', 'Freedom', 'Grandeur',
+  'Harmony', 'Icon', 'Independence', 'Jewel', 'Liberty', 'Mariner', 'Navigator', 'Oasis', 'Odyssey',
+  'Ovation', 'Quantum', 'Radiance', 'Rhapsody', 'Serenade', 'Spectrum', 'Star', 'Symphony', 'Utopia',
+  'Vision', 'Voyager', 'Wonder'
+];
+const ROYAL_PACKAGE_CODES = {
+  '2026-05-29|ovation of the seas|vancouver|7 night northbound alaska hubbard glacier': {
+    packageCode: 'OV07A407',
+    groupId: 'OV07YVR-1733860689'
+  },
+  '2026-08-24|wonder of the seas|miami|4 night bahamas perfect day cruise': {
+    packageCode: 'WN4BH352',
+    groupId: 'WN04MIA-1040267344'
+  },
+  '2026-05-16|mariner of the seas|galveston|5 night western caribbean cruise': {
+    packageCode: 'MA05W678'
+  }
+};
+function expectedUpgrade(gregBest, janetBest) {
+  const stronger = Math.max(rankRoom(gregBest), rankRoom(janetBest));
+  return roomByRank[Math.min(stronger + 1, 4)] || '';
+}
+function isAlaska(row) {
+  const text = [row['Itinerary'], row['Departure Port']].join(' ');
+  return /alaska|hubbard|inside passage|seward|skagway|juneau|ketchikan|sitka|icy strait/i.test(text);
+}
+function keyText(s) { return String(s||'').toLowerCase().replace(/advenighture/g,'adventure').replace(/\bglac\b/g,'glacier').replace(/[^a-z0-9]+/g,' ').trim(); }
+function matchKey(r) { return [r['Main Offer'], r['Sail Date'], keyText(r['Ship']), keyText(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
+function bestRoom(rows) {
+  let best = '';
+  for (const r of rows) if (rankRoom(r['Room Group']) > rankRoom(best)) best = r['Room Group'];
+  return best;
+}
+function offerRoomList(rows) {
+  const bits = [...new Set(rows.map(r => `${r['Offer Code']} — ${r['Room Type']}`))];
+  return bits.join('; ');
+}
+function offerCodeList(rows) {
+  return [...new Set(rows.map(r => r['Offer Code']).filter(Boolean))].join('; ');
+}
+function buildMatches(rows) {
+  const groups = new Map();
+  rows.forEach(r => {
+    if ((r['Offer Type']||'').toLowerCase() !== 'cruise fare for 2 guests') return;
+    const k = matchKey(r);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  });
+  const out=[];
+  for (const [k, list] of groups.entries()) {
+    const greg = list.filter(r => r.Person === 'Greg');
+    const janet = list.filter(r => r.Person === 'Janet');
+    if (!greg.length || !janet.length) continue;
+    const sample = list[0];
+    const gb = bestRoom(greg), jb = bestRoom(janet);
+    const sharedRoomGroup = roomByRank[Math.max(rankRoom(gb), rankRoom(jb))] || '';
+    out.push({
+      'Main Offer': sample['Main Offer'], 'Sail Date': sample['Sail Date'], 'Ship': sample['Ship'], 'Departure Port': sample['Departure Port'],
+      'Itinerary': sample['Itinerary'],
+      'Room Group': sharedRoomGroup,
+      'Greg Offer Code': offerCodeList(greg),
+      'Janet Offer Code': offerCodeList(janet),
+      'Greg Offer(s) / Room(s)': offerRoomList(greg),
+      'Janet Offer(s) / Room(s)': offerRoomList(janet),
+      'Offer Code': (greg[0] || janet[0])['Offer Code'],
+      'Greg Best Room': gb, 'Janet Best Room': jb, 'Expected Paired Upgrade': expectedUpgrade(gb,jb),
+      'Alaska?': isAlaska(sample) ? 'Yes' : 'No', 'Vancouver/Seattle Alaska?': (isAlaska(sample) && /vancouver|seattle/i.test(sample['Departure Port'])) ? 'Yes' : 'No',
+      '_search': list.map(r => Object.values(r).join(' ')).join(' ')
+    });
+  }
+  return out;
+}
+function isMatchView() {
+  return currentView === 'matches' || currentView === 'alaskaMatches';
+}
+function isIndividualView() {
+  return currentView === 'individual' || currentView === 'alaskaIndividual';
+}
+function filteredRows() {
+  const rows = allRows();
+  const matches = buildMatches(rows);
+  let data = isMatchView() ? matches : rows;
+  if (currentView === 'alaskaIndividual') data = rows.filter(r => r['Alaska?']==='Yes');
+  if (currentView === 'alaskaMatches') data = matches.filter(r => r['Alaska?']==='Yes');
+  const person = document.getElementById('personFilter').value;
+  const main = document.getElementById('mainOfferFilter').value;
+  const month = document.getElementById('monthFilter').value;
+  const length = document.getElementById('lengthFilter').value;
+  const room = document.getElementById('roomFilter').value;
+  const port = document.getElementById('portFilter').value;
+  const ship = document.getElementById('shipFilter').value;
+  const sortFilter = document.getElementById('sortFilter').value;
+  data = data.filter(r => {
+    if (main && r['Main Offer'] !== main) return false;
+    if (month && sailMonthKey(r['Sail Date']) !== month) return false;
+    if (length && cruiseLengthKey(r['Itinerary']) !== length) return false;
+    if (port && departurePortKey(r['Departure Port']) !== port) return false;
+    if (ship && r['Ship'] !== ship) return false;
+    if (person && isIndividualView() && r['Person'] !== person) return false;
+    if (person && isMatchView()) {
+      if (person === 'Greg' && !r['Greg Offer(s) / Room(s)']) return false;
+      if (person === 'Janet' && !r['Janet Offer(s) / Room(s)']) return false;
+    }
+    if (room) {
+      if (isIndividualView() && r['Room Group'] !== room) return false;
+      if (isMatchView() && r['Expected Paired Upgrade'] !== room) return false;
+    }
+    return true;
+  });
+  if (sortFilter === 'portShip') {
+    data.sort((a,b) => compare(a['Departure Port'], b['Departure Port'], 'Departure Port') || compare(a['Ship'], b['Ship'], 'Ship') || compare(a['Sail Date'], b['Sail Date'], 'Sail Date'));
+  } else if (sortFilter === 'shipPort') {
+    data.sort((a,b) => compare(a['Ship'], b['Ship'], 'Ship') || compare(a['Departure Port'], b['Departure Port'], 'Departure Port') || compare(a['Sail Date'], b['Sail Date'], 'Sail Date'));
+  } else {
+    data.sort((a,b) => compare(a[sortState.key], b[sortState.key], sortState.key) * sortState.dir);
+  }
+  return data;
+}
+function compare(a,b,key) {
+  if (key && /date/i.test(key)) return String(a||'').localeCompare(String(b||''));
+  const na = parseFloat(a), nb = parseFloat(b);
+  if (!isNaN(na) && !isNaN(nb)) return na-nb;
+  return String(a||'').localeCompare(String(b||''));
+}
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+  sortState = {key:'Sail Date', dir:1};
+  render();
+}
+function columnsForView() {
+  if (isMatchView()) return ['Itinerary Link','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Greg Offer Code','Janet Offer Code','Greg Best Room','Janet Best Room','Expected Paired Upgrade'];
+  return ['Itinerary Link','Person','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Type','Room Group','Offer Type'];
+}
+function savedColumns() {
+  return ['Source View','Person','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Expected Paired Upgrade'];
+}
+function badge(value) {
+  if (value === 'Yes') return '<span class="badge green">Yes</span>';
+  if (['Junior Suite','Balcony','Ocean View','Interior'].includes(value)) {
+    const cls = value === 'Junior Suite' ? 'green' : value === 'Balcony' ? 'blue' : value === 'Ocean View' ? 'orange' : 'red';
+    return `<span class="badge ${cls}">${escapeHtml(value)}</span>`;
+  }
+  return escapeHtml(value);
+}
+function render() {
+  refreshFilters();
+  renderStats();
+  const data = filteredRows();
+  const cols = columnsForView();
+  document.getElementById('resultCount').textContent = `${data.length.toLocaleString()} row(s) shown`;
+  const table = document.getElementById('dataTable');
+  let html = '<thead><tr><th>Save</th>' + cols.map(c => `<th onclick="sortBy('${c.replace(/'/g,"\'")}')">${escapeHtml(c)} ${sortState.key===c ? (sortState.dir>0?'▲':'▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
+  for (let i = 0; i < data.length; i++) {
+    const r = data[i];
+    const saved = isOfferSaved(r);
+    html += '<tr><td>' + (saved ? '<button class="mini-button saved" disabled>Saved</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Save</button>`) + '</td>' + cols.map(c => {
+      if (c === 'Itinerary Link') return `<td>${royalItineraryLinkHtml(r)}</td>`;
+      let val = r[c] || '';
+      if (c === 'Sail Date') val = displayDate(val);
+      return `<td>${badge(val)}</td>`;
+    }).join('') + '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+  renderSavedOffers();
+}
+function sortBy(key) {
+  if (sortState.key === key) sortState.dir *= -1; else sortState = {key, dir:1};
+  render();
+}
+function royalItineraryLinkHtml(row) {
+  const url = royalCaribbeanUrl(row);
+  const details = royalPackageDetails(row);
+  const label = details ? 'Itinerary' : 'Find Itinerary';
+  return url ? `<a class="royal-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${label}</a>` : '';
+}
+function royalCaribbeanUrl(row) {
+  const sailDate = row['Sail Date'];
+  const nights = (String(row['Itinerary'] || '').match(/^\s*(\d+)\s*Night/i) || [])[1];
+  const title = itineraryTitle(row);
+  const port = row['Departure Port'];
+  const ship = String(row['Ship'] || '').replace(/\s+of\s+the\s+Seas$/i, '');
+  if (!sailDate || !nights || !title || !port || !ship) return '';
+  const details = royalPackageDetails(row);
+  const range = monthRange(sailDate);
+  if (!details) {
+    return googleItinerarySearchUrl(row);
+  }
+  const slug = `${nights}-night-${slugify(title)}-from-${slugify(port)}-on-${slugify(ship)}-${details.packageCode}`;
+  const params = new URLSearchParams({
+    sailDate,
+    packageCode: details.packageCode,
+    country: 'USA',
+    search: `startDate:${range.start}~${range.end}`
+  });
+  if (details.groupId) params.set('groupId', details.groupId);
+  return `https://www.royalcaribbean.com/itinerary/${slug}?${params.toString()}`;
+}
+function googleItinerarySearchUrl(row) {
+  const query = [
+    row['Ship'],
+    displayDate(row['Sail Date']),
+    row['Departure Port'],
+    row['Itinerary'],
+    'site:royalcaribbean.com/itinerary'
+  ].filter(Boolean).join(' ');
+  return `https://www.google.com/search?btnI=1&q=${encodeURIComponent(query)}`;
+}
+function royalPackageDetails(row) {
+  return ROYAL_PACKAGE_CODES[packageKey(row)] || null;
+}
+function packageKey(row) {
+  return [
+    row['Sail Date'],
+    keyText(row['Ship']),
+    keyText(row['Departure Port']),
+    keyText(row['Itinerary'])
+  ].join('|');
+}
+function slugify(value) {
+  return String(value || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/&/g, ' ')
+    .replace(/\band\b/gi, ' ')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+function monthRange(isoDate) {
+  const d = new Date(`${isoDate}T00:00:00`);
+  if (isNaN(d)) return {start: isoDate, end: isoDate};
+  const start = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01`;
+  const endDate = new Date(d.getFullYear(), d.getMonth()+1, 0);
+  const end = `${endDate.getFullYear()}-${String(endDate.getMonth()+1).padStart(2,'0')}-${String(endDate.getDate()).padStart(2,'0')}`;
+  return {start, end};
+}
+function sailMonthKey(isoDate) {
+  return String(isoDate || '').slice(0, 7);
+}
+function displayMonth(monthKey) {
+  const d = new Date(`${monthKey}-01T00:00:00`);
+  if (isNaN(d)) return monthKey;
+  return d.toLocaleDateString(undefined, {year:'numeric', month:'long'});
+}
+function cruiseLengthKey(itinerary) {
+  const match = String(itinerary || '').match(/^\s*(\d+)\s*Night/i);
+  return match ? match[1] : '';
+}
+function displayCruiseLength(nights) {
+  return nights ? `${nights} Night${nights === '1' ? '' : 's'}` : nights;
+}
+function departurePortLabel(port) {
+  const clean = String(port || '').replace(/\s+/g, ' ').trim();
+  const parts = clean.split(',').map(p => p.trim()).filter(Boolean);
+  if (parts.length > 1 && isPortQualifier(parts[parts.length - 1])) return parts.slice(0, -1).join(', ');
+  return clean;
+}
+function departurePortKey(port) {
+  return keyText(departurePortLabel(port));
+}
+function isPortQualifier(value) {
+  return /^(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming|district of columbia|puerto rico|guam|american samoa|u\.?s\.? virgin islands|virgin islands|northern mariana islands|al|ak|az|ar|ca|co|ct|de|fl|ga|hi|id|il|in|ia|ks|ky|la|me|md|ma|mi|mn|ms|mo|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pa|ri|sc|sd|tn|tx|ut|vt|va|wa|wv|wi|wy|dc|pr|gu|as|vi|mp)$/i.test(String(value || '').trim());
+}
+function refreshFilters() {
+  const rows = allRows();
+  const portLabels = new Map();
+  rows.forEach(r => {
+    const key = departurePortKey(r['Departure Port']);
+    if (!key) return;
+    const label = departurePortLabel(r['Departure Port']);
+    if (!portLabels.has(key) || label.length < portLabels.get(key).length) portLabels.set(key, label);
+  });
+  fillSelect('mainOfferFilter', [...new Set(rows.map(r => r['Main Offer']).filter(Boolean))].sort());
+  fillSelect('monthFilter', [...new Set(rows.map(r => sailMonthKey(r['Sail Date'])).filter(Boolean))].sort(), displayMonth);
+  fillSelect('lengthFilter', [...new Set(rows.map(r => cruiseLengthKey(r['Itinerary'])).filter(Boolean))].sort((a,b) => Number(a)-Number(b)), displayCruiseLength);
+  fillSelect('portFilter', [...portLabels.keys()].sort((a,b) => portLabels.get(a).localeCompare(portLabels.get(b))), key => portLabels.get(key));
+  fillSelect('shipFilter', [...new Set(rows.map(r => r['Ship']).filter(Boolean))].sort());
+}
+function fillSelect(id, values, labeler = v => v) {
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All</option>' + values.map(v => `<option value="${escapeHtml(v)}" ${v===cur?'selected':''}>${escapeHtml(labeler(v))}</option>`).join('');
+  if (cur && !values.includes(cur)) sel.value = '';
+}
+function renderStats() {
+  const rows = allRows(); const matches = buildMatches(rows);
+  const uploaded = uploadedRows().length;
+  const cards = [
+    ['Individual CF2 Offers', rows.length], ['Alaska CF2 Offers', rows.filter(r=>r['Alaska?']==='Yes').length],
+    ['Matching Offers', matches.length], ['Matching Alaska Offers', matches.filter(r=>r['Alaska?']==='Yes').length],
+    ['Rows Uploaded This Session', uploaded], ['Junior Suite Upgrades', matches.filter(r=>r['Expected Paired Upgrade']==='Junior Suite').length],
+    ['Balcony Upgrades', matches.filter(r=>r['Expected Paired Upgrade']==='Balcony').length], ['Ocean View Upgrades', matches.filter(r=>r['Expected Paired Upgrade']==='Ocean View').length]
+  ];
+  document.getElementById('stats').innerHTML = cards.map(([l,v]) => `<div class="stat"><div class="label">${escapeHtml(l)}</div><div class="value">${Number(v).toLocaleString()}</div></div>`).join('');
+}
+function resetFilters() {
+  document.getElementById('personFilter').value=''; document.getElementById('mainOfferFilter').value=''; document.getElementById('monthFilter').value=''; document.getElementById('lengthFilter').value=''; document.getElementById('roomFilter').value=''; document.getElementById('portFilter').value=''; document.getElementById('shipFilter').value=''; document.getElementById('sortFilter').value=''; render();
+}
+function escapeHtml(v) { return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+async function parseUploads() {
+  const owner = document.getElementById('uploadOwner').value;
+  const files = [...document.getElementById('fileInput').files];
+  const progress = document.getElementById('uploadProgress');
+  progress.textContent = '';
+  if (!files.length) { progress.textContent = 'Choose one or more PDF files first.'; return; }
+  let added = [];
+  for (const file of files) {
+    progress.textContent += `\nReading ${file.name}...`;
+    try {
+      const text = await pdfToText(file);
+      const parsed = parseOfferText(text, file.name, owner);
+      added.push(...parsed);
+      progress.textContent += ` found ${parsed.length} Cruise Fare For 2 Guests rows.`;
+      if (!parsed.length) progress.textContent += ' If this file contains valid offers, try opening it in Chrome/Edge/Safari 16.4+ or upload a text/CSV export.';
+    } catch(e) {
+      progress.textContent += ` error: ${e.message || e}`;
+    }
+  }
+  if (added.length) {
+    const current = uploadedRows();
+    saveUploaded([...current, ...added]);
+    progress.textContent += `\nAdded ${added.length} rows. The dashboard has been refreshed.`;
+    render();
+  }
+}
+async function pdfToText(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.txt') || name.endsWith('.csv')) return await file.text();
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  const raw = bytesToLatin1(bytes);
+  const cmap = parsePdfCMap(raw);
+  const chunks = [];
+  let pos = 0;
+  while (true) {
+    const streamPos = raw.indexOf('stream', pos);
+    if (streamPos < 0) break;
+    let dataStart = streamPos + 6;
+    if (raw[dataStart] === '\r' && raw[dataStart+1] === '\n') dataStart += 2;
+    else if (raw[dataStart] === '\n' || raw[dataStart] === '\r') dataStart += 1;
+    const endPos = raw.indexOf('endstream', dataStart);
+    if (endPos < 0) break;
+    let dataEnd = endPos;
+    while (dataEnd > dataStart && (bytes[dataEnd-1] === 10 || bytes[dataEnd-1] === 13)) dataEnd--;
+    const objStart = raw.lastIndexOf('obj', streamPos);
+    const prevEndObj = raw.lastIndexOf('endobj', streamPos);
+    if (objStart < 0 || objStart < prevEndObj) { pos = streamPos + 6; continue; }
+    const pre = raw.slice(objStart, streamPos);
+    let streamBytes = bytes.slice(dataStart, dataEnd);
+    if (/FlateDecode/.test(pre)) {
+      try { streamBytes = await inflatePdfStream(streamBytes); }
+      catch(e) { pos = endPos + 9; continue; }
+    }
+    const streamText = bytesToLatin1(streamBytes);
+    const extracted = extractPdfTextObjects(streamText, cmap);
+    if (extracted.trim()) chunks.push(extracted);
+    pos = endPos + 9;
+  }
+  let text = chunks.join('\n');
+  if (text.trim().length < 100) text += '\n' + raw.replace(/[^\x20-\x7E\n\r]/g, ' ');
+  return text;
+}
+function bytesToLatin1(bytes) {
+  let out = '';
+  const step = 0x8000;
+  for (let i=0; i<bytes.length; i+=step) out += String.fromCharCode(...bytes.subarray(i, i+step));
+  return out;
+}
+async function inflatePdfStream(bytes) {
+  if (typeof DecompressionStream === 'undefined') throw new Error('This browser does not support built-in PDF stream decompression. Try Chrome, Edge, or current Safari.');
+  const tryMode = async (mode) => {
+    const ds = new DecompressionStream(mode);
+    const writer = ds.writable.getWriter();
+    const readerPromise = new Response(ds.readable).arrayBuffer();
+    await writer.write(bytes);
+    await writer.close();
+    const ab = await readerPromise;
+    return new Uint8Array(ab);
+  };
+  try { return await tryMode('deflate'); }
+  catch(e) { return await tryMode('deflate-raw'); }
+}
+function parsePdfCMap(raw) {
+  const map = {};
+  const re = /beginbfchar([\s\S]*?)endbfchar/g;
+  let m;
+  while ((m = re.exec(raw)) !== null) {
+    const pairs = m[1].matchAll(/<([0-9A-Fa-f]{4})>\s*<([0-9A-Fa-f]{4,6})>/g);
+    for (const p of pairs) map[parseInt(p[1],16)] = String.fromCodePoint(parseInt(p[2],16));
+  }
+  return map;
+}
+function extractPdfTextObjects(s, cmap) {
+  const out = [];
+  s.replace(/\[((?:.|\n|\r)*?)\]\s*TJ/g, (all, body) => {
+    let line = '';
+    const segRe = /\((?:\\.|[^\\)])*\)|<([0-9A-Fa-f\s]+)>/g;
+    let sm;
+    while ((sm = segRe.exec(body)) !== null) {
+      const token = sm[0];
+      if (token[0] === '(') line += decodePdfLiteral(token.slice(1,-1));
+      else line += decodePdfHex(sm[1], cmap);
+    }
+    if (line.trim()) out.push(line);
+    return all;
+  });
+  s.replace(/(\((?:\\.|[^\\)])*\)|<([0-9A-Fa-f\s]+)>)\s*Tj/g, (all, token, hex) => {
+    const line = token[0] === '(' ? decodePdfLiteral(token.slice(1,-1)) : decodePdfHex(hex, cmap);
+    if (line.trim()) out.push(line);
+    return all;
+  });
+  return out.join('\n');
+}
+function decodePdfLiteral(t) {
+  return t
+    .replace(/\\n/g,'\n').replace(/\\r/g,'\r').replace(/\\t/g,'\t').replace(/\\b/g,'\b').replace(/\\f/g,'\f')
+    .replace(/\\([\\()])/g,'$1')
+    .replace(/\\([0-7]{1,3})/g, (_,o)=>String.fromCharCode(parseInt(o,8)));
+}
+function decodePdfHex(hex, cmap) {
+  hex = (hex || '').replace(/\s+/g,'');
+  let out = '';
+  if (Object.keys(cmap).length) {
+    for (let i=0; i+3<hex.length; i+=4) {
+      const code = parseInt(hex.slice(i,i+4),16);
+      out += cmap[code] ?? '';
+    }
+    return out;
+  }
+  for (let i=0; i+1<hex.length; i+=2) out += String.fromCharCode(parseInt(hex.slice(i,i+2),16));
+  return out;
+}
+function inferOfferCode(text, filename) {
+  let m = filename.match(/(?:sailings-offer-)?([A-Za-z0-9]{5,10})/i);
+  if (m) return normalizeOfferCode(m[1]);
+  m = text.match(/\b(26[A-Z0-9]{3,7}|2605C05)\b/);
+  return m ? normalizeOfferCode(m[1]) : '';
+}
+function parseOfferText(text, filename, owner) {
+  text = text.replace(/\r/g,' ').replace(/\s+/g,' ');
+  const fallbackCode = inferOfferCode(text, filename);
+  const month = '(?:January|February|March|April|May|June|July|August|September|October|November|December)';
+  const date = `${month}\\s+\\d{1,2},\\s+20\\d{2}`;
+  const shipPrefix = ROYAL_SHIP_NAMES.join('|');
+  const ship = `((?:${shipPrefix})\\s+of\\s+the\\s+Seas®?)`;
+  const room = '(Interior\\s*-?\\s*GTY|Interior|Ocean\\s*View\\s*-?\\s*GTY|Oceanview\\s*-?\\s*GTY|Ocean\\s*View|Oceanview|Balcony\\s*-?\\s*GTY|Balcony|Junior\\s+Suite\\s*-?\\s*GTY|Junior\\s+Suite)';
+  const re = new RegExp(`(?:\\b(26[A-Z0-9]{3,7}|2605C05)\\b\\s+)?${ship}\\s+(.{2,80}?)\\s+(${date})\\s+(.{5,150}?)\\s+${room}\\s+Cruise\\s+Fare\\s+For\\s+(1|2)\\s+Guests?`, 'gi');
+  const rows=[];
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const code = normalizeOfferCode(m[1] || fallbackCode);
+    const offerType = `Cruise Fare For ${m[7]} Guests`;
+    if (m[7] !== '2') continue;
+    const row = cleanRow({
+      'Person': owner,
+      'Offer Code': code,
+      'Main Offer': mainOffer(code),
+      'Sail Date': normalizeDate(m[4]),
+      'Ship': m[2],
+      'Departure Port': m[3],
+      'Itinerary': m[5],
+      'Room Type': m[6],
+      'Offer Type': offerType,
+      'Source File(s)': filename
+    });
+    rows.push(row);
+  }
+  const seen = new Set();
+  return rows.filter(r => { const k = [r.Person,r['Offer Code'],r['Sail Date'],r.Ship,r['Departure Port'],r.Itinerary,r['Room Type']].join('|'); if (seen.has(k)) return false; seen.add(k); return true; });
+}
+function clearUploadedRows() {
+  if (confirm('Clear all offer rows uploaded during this browser session?')) {
+    sessionRows = []; document.getElementById('uploadProgress').textContent='Current rows cleared.'; render();
+  }
+}
+function createShareableCopy() {
+  if (!sessionRows.length) { alert('Upload offer PDFs first, then create the shareable copy.'); return; }
+  const rowsJson = JSON.stringify(sessionRows.map(cleanRow));
+  const savedJson = JSON.stringify(savedOffers);
+  let html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  html = html
+    .replace(/const EMBEDDED_SESSION_ROWS = \[[\s\S]*?\];/, `const EMBEDDED_SESSION_ROWS = ${rowsJson};`)
+    .replace(/const EMBEDDED_SAVED_OFFERS = \[[\s\S]*?\];/, `const EMBEDDED_SAVED_OFFERS = ${savedJson};`);
+  html = html.replace(
+    'This page starts fresh each time you open or refresh it. Upload the current offer PDFs whenever you want to rebuild the tables.',
+    'This shareable copy opens with offer rows already loaded. Upload new PDFs only if you want to rebuild the tables.'
+  );
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `club_royale_loaded_offers_${new Date().toISOString().slice(0,10)}.html`;
+  a.click();
+  URL.revokeObjectURL(url);
+  alert('Shareable copy created. Send that downloaded HTML file to the other person.');
+}
+function generateCurrentViewPdf() {
+  openPrintablePdfReport(filteredRows());
+}
+function saveOfferFromCurrentView(index) {
+  const row = filteredRows()[index];
+  if (!row || isOfferSaved(row)) return;
+  savedOffers.push(savedOfferSnapshot(row));
+  render();
+}
+function savedOfferSnapshot(row) {
+  const copy = {...row};
+  copy['_savedKey'] = offerSaveKey(row);
+  copy['Source View'] = viewName(currentView);
+  if (isMatchView()) {
+    copy['Person'] = 'Greg + Janet';
+    copy['Offer Code'] = [copy['Greg Offer Code'], copy['Janet Offer Code']].filter(Boolean).join(' / ');
+  }
+  return copy;
+}
+function offerSaveKey(row) {
+  return [
+    isMatchView() ? 'match' : 'individual',
+    row['Person'],
+    row['Offer Code'],
+    row['Greg Offer Code'],
+    row['Janet Offer Code'],
+    row['Main Offer'],
+    row['Sail Date'],
+    row['Ship'],
+    row['Departure Port'],
+    row['Itinerary'],
+    row['Room Type'],
+    row['Expected Paired Upgrade']
+  ].map(v => keyText(v)).join('|');
+}
+function isOfferSaved(row) {
+  const key = offerSaveKey(row);
+  return savedOffers.some(r => r['_savedKey'] === key);
+}
+function removeSavedOffer(key) {
+  savedOffers = savedOffers.filter(r => r['_savedKey'] !== key);
+  renderSavedOffers();
+  render();
+}
+function clearSavedOffers() {
+  if (!savedOffers.length) return;
+  if (confirm('Clear the saved offer list?')) {
+    savedOffers = [];
+    render();
+  }
+}
+function generateSavedOffersPdf() {
+  if (!savedOffers.length) { alert('Save one or more offers first.'); return; }
+  openPrintablePdfReport(savedOffers, savedColumns(), 'Club Royale Saved Offer List');
+}
+function renderSavedOffers() {
+  const table = document.getElementById('savedTable');
+  document.getElementById('savedCount').textContent = `${savedOffers.length.toLocaleString()} offer(s) saved`;
+  const cols = savedColumns();
+  if (!savedOffers.length) {
+    table.innerHTML = '<tbody><tr><td class="small">No offers saved yet.</td></tr></tbody>';
+    return;
+  }
+  let html = '<thead><tr><th>Remove</th>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr></thead><tbody>';
+  savedOffers.forEach(r => {
+    html += `<tr><td><button class="mini-button secondary" onclick="removeSavedOffer('${escapeHtml(r['_savedKey'])}')">Remove</button></td>` + cols.map(c => {
+      let val = r[c] || '';
+      if (c === 'Sail Date') val = displayDate(val);
+      return `<td>${badge(val)}</td>`;
+    }).join('') + '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+function emailCurrentViewOutlook() {
+  const data = filteredRows();
+  const csv = currentCsv();
+  const filename = currentCsvFilename();
+  const subject = `Club Royale ${viewName(currentView)} - ${data.length.toLocaleString()} row(s)`;
+  const body = `Club Royale ${viewName(currentView)} export\r\nRows: ${data.length.toLocaleString()}\r\n\r\nThe CSV export is attached.`;
+  const attachment = new Blob([csv], {type:'text/csv'});
+  downloadEmlDraft(subject, body, [{filename, contentType:'text/csv', blob:attachment}]);
+}
+function generatePdfAndEmailOutlook() {
+  const data = filteredRows();
+  const reportName = currentPdfFilename();
+  const subject = `Club Royale ${viewName(currentView)} PDF - ${data.length.toLocaleString()} row(s)`;
+  const body = `Club Royale ${viewName(currentView)} report\r\nRows: ${data.length.toLocaleString()}\r\n\r\nThe PDF report is attached.`;
+  const attachment = makePdfBlob(data);
+  downloadEmlDraft(subject, body, [{filename:reportName, contentType:'application/pdf', blob:attachment}]);
+}
+function downloadEmlDraft(subject, body, attachments) {
+  Promise.all(attachments.map(a => blobToBase64(a.blob))).then(parts => {
+    const boundary = `club_royale_${Date.now()}`;
+    const safeSubject = subject.replace(/[\r\n]/g, ' ');
+    let eml = '';
+    eml += `Subject: ${safeSubject}\r\n`;
+    eml += 'X-Unsent: 1\r\n';
+    eml += 'MIME-Version: 1.0\r\n';
+    eml += `Content-Type: multipart/mixed; boundary="${boundary}"\r\n\r\n`;
+    eml += `--${boundary}\r\n`;
+    eml += 'Content-Type: text/plain; charset=UTF-8\r\n';
+    eml += 'Content-Transfer-Encoding: 8bit\r\n\r\n';
+    eml += `${body}\r\n\r\n`;
+    attachments.forEach((a, i) => {
+      eml += `--${boundary}\r\n`;
+      eml += `Content-Type: ${a.contentType}; name="${a.filename}"\r\n`;
+      eml += 'Content-Transfer-Encoding: base64\r\n';
+      eml += `Content-Disposition: attachment; filename="${a.filename}"\r\n\r\n`;
+      eml += `${wrapBase64(parts[i])}\r\n\r\n`;
+    });
+    eml += `--${boundary}--\r\n`;
+    const blob = new Blob([eml], {type:'message/rfc822'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeFilename(subject)}.eml`;
+    a.click();
+    URL.revokeObjectURL(url);
+    alert('Outlook draft created. Open the downloaded .eml file and Outlook should show the email with the attachment already included.');
+  });
+}
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+function wrapBase64(s) {
+  return String(s).replace(/.{1,76}/g, '$&\r\n').trim();
+}
+function safeFilename(name) {
+  return String(name || 'club_royale_email').replace(/[^A-Za-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0,90) || 'club_royale_email';
+}
+function openPrintablePdfReport(data, cols = columnsForView(), title = `Club Royale ${viewName(currentView)}`) {
+  const generated = new Date().toLocaleString();
+  const rowsHtml = data.map(r => '<tr>' + cols.map(c => {
+    const val = c === 'Itinerary Link' ? royalCaribbeanUrl(r) : c === 'Sail Date' ? displayDate(r[c]) : r[c];
+    return `<td>${escapeHtml(val || '')}</td>`;
+  }).join('') + '</tr>').join('');
+  const html = `<!DOCTYPE html><html><head><title>${escapeHtml(title)}</title><style>
+    body{font-family:Arial,Helvetica,sans-serif;color:#071832;margin:24px;}
+    h1{margin:0 0 4px;color:#001871;font-size:22px;}
+    .meta{color:#58657a;font-size:12px;margin-bottom:16px;}
+    table{width:100%;border-collapse:collapse;font-size:10px;}
+    th{background:#071832;color:#fff;border:1px solid #071832;padding:6px;text-align:left;}
+    td{border:1px solid #cfd8e8;padding:5px;vertical-align:top;word-break:break-word;}
+    tr:nth-child(even) td{background:#f7f9fd;}
+    @media print{@page{size:landscape;margin:.35in;} body{margin:0;}}
+  </style></head><body>
+    <h1>${escapeHtml(title)}</h1>
+    <div class="meta">${data.length.toLocaleString()} row(s) shown • Generated ${escapeHtml(generated)}</div>
+    <table><thead><tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead><tbody>${rowsHtml}</tbody></table>
+  </body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { alert('Allow popups to generate the printable PDF report.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 500);
+}
+function currentCsv() {
+  const data = filteredRows(); const cols = columnsForView();
+  return [cols.join(',')].concat(data.map(r => cols.map(c => csvCell(c==='Itinerary Link'?royalCaribbeanUrl(r):c==='Sail Date'?displayDate(r[c]):r[c])).join(','))).join('\n');
+}
+function downloadCsv(csv) {
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=currentCsvFilename(); a.click(); URL.revokeObjectURL(url);
+}
+function currentCsvFilename() {
+  return `club_royale_${currentView}.csv`;
+}
+function currentPdfFilename() {
+  return `club_royale_${currentView}.pdf`;
+}
+function makePdfBlob(data, cols = columnsForView(), title = `Club Royale ${viewName(currentView)}`) {
+  const generated = new Date().toLocaleString();
+  const pageWidth = 792, pageHeight = 612, margin = 28, lineHeight = 10;
+  const lines = [
+    title,
+    `${data.length.toLocaleString()} row(s) shown - Generated ${generated}`,
+    ''
+  ];
+  data.forEach((r, idx) => {
+    const rowText = cols.map(c => {
+      const val = c === 'Itinerary Link' ? royalCaribbeanUrl(r) : c === 'Sail Date' ? displayDate(r[c]) : r[c];
+      return `${c}: ${String(val || '').replace(/\s+/g, ' ').trim()}`;
+    }).join(' | ');
+    wrapPdfLine(`${idx + 1}. ${rowText}`, 160).forEach(line => lines.push(line));
+    lines.push('');
+  });
+
+  const pageLines = [];
+  const maxLines = Math.floor((pageHeight - margin * 2 - 28) / lineHeight);
+  for (let i = 0; i < lines.length; i += maxLines) pageLines.push(lines.slice(i, i + maxLines));
+
+  const objects = [null];
+  objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
+  objects[3] = '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>';
+  const kids = [];
+  pageLines.forEach((page, pageIndex) => {
+    const pageObj = objects.length;
+    const contentObj = pageObj + 1;
+    kids.push(`${pageObj} 0 R`);
+    const fontSize = pageIndex === 0 ? 8 : 7;
+    const content = buildPdfPageContent(page, margin, pageHeight - margin, lineHeight, fontSize);
+    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObj} 0 R >>`);
+    objects.push(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`);
+  });
+  objects[2] = `<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length} >>`;
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  for (let i = 1; i < objects.length; i++) {
+    offsets[i] = pdf.length;
+    pdf += `${i} 0 obj\n${objects[i]}\nendobj\n`;
+  }
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+  for (let i = 1; i < objects.length; i++) pdf += `${String(offsets[i]).padStart(10,'0')} 00000 n \n`;
+  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return new Blob([pdf], {type:'application/pdf'});
+}
+function buildPdfPageContent(lines, x, y, lineHeight, fontSize) {
+  const out = [`BT /F1 ${fontSize} Tf ${lineHeight} TL ${x} ${y} Td`];
+  lines.forEach((line, idx) => {
+    if (idx > 0) out.push('T*');
+    out.push(`(${pdfText(line)}) Tj`);
+  });
+  out.push('ET');
+  return out.join('\n');
+}
+function wrapPdfLine(text, maxChars) {
+  const words = String(text || '').normalize('NFKD').replace(/[^\x20-\x7E]/g, '?').split(/\s+/);
+  const lines = [];
+  let line = '';
+  words.forEach(word => {
+    if ((line + ' ' + word).trim().length > maxChars) {
+      if (line) lines.push(line);
+      line = word;
+    } else {
+      line = (line + ' ' + word).trim();
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+function pdfText(text) {
+  return String(text || '').normalize('NFKD').replace(/[^\x20-\x7E]/g, '?').replace(/[\\()]/g, '\\$&');
+}
+function viewName(view) {
+  return ({
+    individual: 'Individual Offers',
+    alaskaIndividual: 'Alaska Individual Offers',
+    matches: 'Matching Offers',
+    alaskaMatches: 'Matching Alaska Offers'
+  })[view] || view;
+}
+function csvCell(v) { v = String(v ?? ''); return /[\",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v; }
+function loadEmbeddedData() {
+  if (Array.isArray(EMBEDDED_SESSION_ROWS) && EMBEDDED_SESSION_ROWS.length) sessionRows = EMBEDDED_SESSION_ROWS.map(cleanRow);
+  if (Array.isArray(EMBEDDED_SAVED_OFFERS) && EMBEDDED_SAVED_OFFERS.length) savedOffers = EMBEDDED_SAVED_OFFERS.map(r => ({...r}));
+}
+loadEmbeddedData();
+render();
+</script>
+</body>
+</html>
