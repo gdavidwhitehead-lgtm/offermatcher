@@ -94,6 +94,7 @@ tr:hover td { background:#fffaf0; }
   table td:last-child { border-bottom:0; }
   table td::before { content:attr(data-label); display:block; color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; margin-bottom:3px; }
   table td[data-label="Save"], table td[data-label="Remove"] { background:#f7f9fd; }
+  #dataTable td[data-mobile-hide="true"] { display:none; }
   .mini-button { width:auto; min-height:34px; }
   .saved-list-head { display:block; }
   .saved-list-head .controls { margin-top:10px; }
@@ -155,25 +156,28 @@ tr:hover td { background:#fffaf0; }
       <div class="control"><label>Ship</label><select id="shipFilter" onchange="render()"><option value="">All</option></select></div>
       <div class="control"><label>Sort Offers</label><select id="sortFilter" onchange="render()"><option value="">Sail Date</option><option value="portShip">Departure Port, then Ship</option><option value="shipPort">Ship, then Departure Port</option></select></div>
       <button class="secondary" onclick="resetFilters()">Reset Filters</button>
+      <button class="secondary" onclick="openSavedOffers()">Show Saved Offers</button>
     </div>
     <div class="small" id="resultCount"></div>
     <div class="table-wrap"><table id="dataTable"></table></div>
   </section>
-
-  <section class="card">
-    <div class="saved-list-head">
+</main>
+<div id="savedOffersModal" class="modal-backdrop" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
       <div>
-        <h2 style="margin:0 0 4px;font-size:18px;">Saved Offer List</h2>
+        <h2>Saved Offer List</h2>
         <div class="small" id="savedCount">0 offer(s) saved</div>
       </div>
       <div class="controls">
         <button class="secondary" onclick="generateSavedOffersPdf()">Generate Saved List PDF</button>
         <button class="danger" onclick="clearSavedOffers()">Clear Saved List</button>
+        <button class="secondary" onclick="closeSavedOffers()">Close</button>
       </div>
     </div>
-    <div class="table-wrap" style="max-height:38vh;"><table id="savedTable"></table></div>
-  </section>
-</main>
+    <div class="table-wrap" style="max-height:60vh;"><table id="savedTable"></table></div>
+  </div>
+</div>
 <div id="offerCodeModal" class="modal-backdrop" hidden>
   <div class="modal-panel">
     <div class="modal-head">
@@ -405,6 +409,9 @@ function columnsForView() {
 function savedColumns() {
   return ['Source View','Person','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Expected Paired Upgrade'];
 }
+function mobileVisibleColumn(c) {
+  return ['Itinerary Link','Sail Date','Ship','Departure Port','Itinerary','Room Type'].includes(c);
+}
 function badge(value) {
   if (value === 'Yes') return '<span class="badge green">Yes</span>';
   if (['Junior Suite','Balcony','Ocean View','Interior'].includes(value)) {
@@ -425,10 +432,11 @@ function render() {
     const r = data[i];
     const saved = isOfferSaved(r);
     html += '<tr><td data-label="Save">' + (saved ? '<button class="mini-button saved" disabled>Saved</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Save</button>`) + '</td>' + cols.map(c => {
-      if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}">${royalItineraryLinkHtml(r)}</td>`;
+      const mobileHidden = mobileVisibleColumn(c) ? 'false' : 'true';
+      if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${royalItineraryLinkHtml(r)}</td>`;
       let val = r[c] || '';
       if (c === 'Sail Date') val = displayDate(val);
-      return `<td data-label="${escapeHtml(c)}">${badge(val)}</td>`;
+      return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${badge(val)}</td>`;
     }).join('') + '</tr>';
   }
   html += '</tbody>';
@@ -882,6 +890,13 @@ function clearSavedOffers() {
     saveCurrentState();
     render();
   }
+}
+function openSavedOffers() {
+  renderSavedOffers();
+  document.getElementById('savedOffersModal').hidden = false;
+}
+function closeSavedOffers() {
+  document.getElementById('savedOffersModal').hidden = true;
 }
 function generateSavedOffersPdf() {
   if (!savedOffers.length) { alert('Save one or more offers first.'); return; }
