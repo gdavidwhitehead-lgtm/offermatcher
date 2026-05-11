@@ -118,10 +118,6 @@ tr:hover td { background:#fffaf0; }
 </header>
 <main>
   <section class="card">
-    <div class="grid" id="stats"></div>
-  </section>
-
-  <section class="card">
     <h2 style="margin:0 0 8px;font-size:18px;">Upload New Offer PDFs</h2>
     <div class="help">Choose whether the files belong to Greg or Janet, then upload one or more Club Royale offer PDFs. New rows are parsed in your browser and kept only until this page is closed or refreshed. Matching logic uses the main offer family, so 26WCR304 and 26WCR307 match as 26WCR. 26TIER3 and 2605C05 are kept as their own offer families.</div>
     <div class="controls" style="margin-top:12px;">
@@ -132,6 +128,7 @@ tr:hover td { background:#fffaf0; }
       <button class="secondary" onclick="emailCurrentViewOutlook()">Outlook CSV Draft</button>
       <button class="secondary" onclick="generatePdfAndEmailOutlook()">Outlook PDF Draft</button>
       <button class="secondary" onclick="createShareableCopy()">Create Shareable Copy</button>
+      <button class="secondary" onclick="openStats()">Show Statistics</button>
       <button class="secondary" onclick="openOfferCodeManager()">Manage Offer Codes</button>
       <button class="danger" onclick="clearUploadedRows()">Clear Current Rows</button>
     </div>
@@ -162,6 +159,18 @@ tr:hover td { background:#fffaf0; }
     <div class="table-wrap"><table id="dataTable"></table></div>
   </section>
 </main>
+<div id="statsModal" class="modal-backdrop" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <h2>Offer Statistics</h2>
+        <div class="small">Current totals for the loaded offers.</div>
+      </div>
+      <button class="secondary" onclick="closeStats()">Close</button>
+    </div>
+    <div class="grid" id="stats"></div>
+  </div>
+</div>
 <div id="savedOffersModal" class="modal-backdrop" hidden>
   <div class="modal-panel">
     <div class="modal-head">
@@ -562,6 +571,8 @@ function fillSelect(id, values, labeler = v => v) {
   if (cur && !values.includes(cur)) sel.value = '';
 }
 function renderStats() {
+  const stats = document.getElementById('stats');
+  if (!stats) return;
   const rows = allRows(); const matches = buildMatches(rows);
   const uploaded = uploadedRows().length;
   const cards = [
@@ -570,7 +581,14 @@ function renderStats() {
     ['Rows Uploaded This Session', uploaded], ['Junior Suite Upgrades', matches.filter(r=>r['Expected Paired Upgrade']==='Junior Suite').length],
     ['Balcony Upgrades', matches.filter(r=>r['Expected Paired Upgrade']==='Balcony').length], ['Ocean View Upgrades', matches.filter(r=>r['Expected Paired Upgrade']==='Ocean View').length]
   ];
-  document.getElementById('stats').innerHTML = cards.map(([l,v]) => `<div class="stat"><div class="label">${escapeHtml(l)}</div><div class="value">${Number(v).toLocaleString()}</div></div>`).join('');
+  stats.innerHTML = cards.map(([l,v]) => `<div class="stat"><div class="label">${escapeHtml(l)}</div><div class="value">${Number(v).toLocaleString()}</div></div>`).join('');
+}
+function openStats() {
+  renderStats();
+  document.getElementById('statsModal').hidden = false;
+}
+function closeStats() {
+  document.getElementById('statsModal').hidden = true;
 }
 function resetFilters() {
   document.getElementById('personFilter').value=''; document.getElementById('mainOfferFilter').value=''; document.getElementById('monthFilter').value=''; document.getElementById('lengthFilter').value=''; document.getElementById('roomFilter').value=''; document.getElementById('portFilter').value=''; document.getElementById('shipFilter').value=''; document.getElementById('sortFilter').value=''; render();
