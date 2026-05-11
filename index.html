@@ -66,6 +66,42 @@ tr:hover td { background:#fffaf0; }
 .modal-head h2 { margin:0 0 4px; font-size:18px; }
 .code-table { min-width:720px; }
 @media (max-width:900px) { .grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); } main { padding:12px; } .brand-bar { padding:18px 16px; } header h1 { font-size:24px; } .logo-mark { width:48px; height:48px; } }
+@media (max-width:700px) {
+  body { background:#eef2f8; }
+  header { border-bottom-width:4px; }
+  .brand-bar { align-items:flex-start; gap:12px; padding:16px 12px; }
+  .logo-mark { width:42px; height:42px; padding:7px; }
+  header h1 { font-size:20px; line-height:1.15; }
+  header p { font-size:12px; line-height:1.35; }
+  main { padding:10px; }
+  .card { padding:12px; border-radius:8px; margin-bottom:10px; box-shadow:0 8px 18px rgba(0,24,113,.08); }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; }
+  .stat { padding:10px; border-radius:7px; }
+  .stat .label { font-size:10px; line-height:1.2; }
+  .stat .value { font-size:20px; }
+  .controls { display:grid; grid-template-columns:1fr; gap:8px; align-items:stretch; }
+  .control { width:100%; }
+  input[type="text"], select, input[type="file"], button { width:100%; min-width:0; max-width:none; font-size:16px; }
+  button { min-height:42px; }
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tab { min-height:44px; padding:9px 8px; }
+  .table-wrap { max-height:none; overflow:visible; border:0; background:transparent; }
+  table, .code-table { min-width:0; width:100%; border-collapse:separate; border-spacing:0 10px; }
+  table thead { display:none; }
+  table tbody, table tr, table td { display:block; width:100%; }
+  table tr { border:1px solid var(--line); border-top:4px solid var(--gold); border-radius:8px; background:#fff; box-shadow:0 6px 16px rgba(0,24,113,.08); overflow:hidden; }
+  table td { border:0; border-bottom:1px solid #edf1f8; padding:8px 10px; font-size:13px; }
+  table td:last-child { border-bottom:0; }
+  table td::before { content:attr(data-label); display:block; color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; margin-bottom:3px; }
+  table td[data-label="Save"], table td[data-label="Remove"] { background:#f7f9fd; }
+  .mini-button { width:auto; min-height:34px; }
+  .saved-list-head { display:block; }
+  .saved-list-head .controls { margin-top:10px; }
+  .modal-backdrop { align-items:flex-start; padding:10px; }
+  .modal-panel { max-height:94vh; padding:12px; border-radius:8px; }
+  .modal-head { display:block; }
+  .modal-head button { margin-top:10px; }
+}
 </style>
 </head>
 <body>
@@ -388,11 +424,11 @@ function render() {
   for (let i = 0; i < data.length; i++) {
     const r = data[i];
     const saved = isOfferSaved(r);
-    html += '<tr><td>' + (saved ? '<button class="mini-button saved" disabled>Saved</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Save</button>`) + '</td>' + cols.map(c => {
-      if (c === 'Itinerary Link') return `<td>${royalItineraryLinkHtml(r)}</td>`;
+    html += '<tr><td data-label="Save">' + (saved ? '<button class="mini-button saved" disabled>Saved</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Save</button>`) + '</td>' + cols.map(c => {
+      if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}">${royalItineraryLinkHtml(r)}</td>`;
       let val = r[c] || '';
       if (c === 'Sail Date') val = displayDate(val);
-      return `<td>${badge(val)}</td>`;
+      return `<td data-label="${escapeHtml(c)}">${badge(val)}</td>`;
     }).join('') + '</tr>';
   }
   html += '</tbody>';
@@ -720,17 +756,17 @@ function renderOfferCodeManager() {
   const table = document.getElementById('offerCodeTable');
   const summaries = offerCodeSummaries();
   if (!summaries.length) {
-    table.innerHTML = '<tbody><tr><td class="small">No offers are currently loaded.</td></tr></tbody>';
+    table.innerHTML = '<tbody><tr><td class="small" data-label="Offer Codes">No offers are currently loaded.</td></tr></tbody>';
     return;
   }
   table.innerHTML = '<thead><tr><th>Offer Code</th><th>Main Offer</th><th>Rows</th><th>Owner(s)</th><th>Sail Dates</th><th>Remove</th></tr></thead><tbody>' +
     summaries.map(s => `<tr>
-      <td>${escapeHtml(s.code)}</td>
-      <td>${escapeHtml(s.main)}</td>
-      <td>${s.count.toLocaleString()}</td>
-      <td>${escapeHtml(s.owners)}</td>
-      <td>${escapeHtml(s.dateRange)}</td>
-      <td><button class="mini-button danger" onclick="removeOfferCode('${escapeHtml(s.code)}')">Remove</button></td>
+      <td data-label="Offer Code">${escapeHtml(s.code)}</td>
+      <td data-label="Main Offer">${escapeHtml(s.main)}</td>
+      <td data-label="Rows">${s.count.toLocaleString()}</td>
+      <td data-label="Owner(s)">${escapeHtml(s.owners)}</td>
+      <td data-label="Sail Dates">${escapeHtml(s.dateRange)}</td>
+      <td data-label="Remove"><button class="mini-button danger" onclick="removeOfferCode('${escapeHtml(s.code)}')">Remove</button></td>
     </tr>`).join('') + '</tbody>';
 }
 function offerCodeSummaries() {
@@ -856,15 +892,15 @@ function renderSavedOffers() {
   document.getElementById('savedCount').textContent = `${savedOffers.length.toLocaleString()} offer(s) saved`;
   const cols = savedColumns();
   if (!savedOffers.length) {
-    table.innerHTML = '<tbody><tr><td class="small">No offers saved yet.</td></tr></tbody>';
+    table.innerHTML = '<tbody><tr><td class="small" data-label="Saved Offers">No offers saved yet.</td></tr></tbody>';
     return;
   }
   let html = '<thead><tr><th>Remove</th>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr></thead><tbody>';
   savedOffers.forEach(r => {
-    html += `<tr><td><button class="mini-button secondary" onclick="removeSavedOffer('${escapeHtml(r['_savedKey'])}')">Remove</button></td>` + cols.map(c => {
+    html += `<tr><td data-label="Remove"><button class="mini-button secondary" onclick="removeSavedOffer('${escapeHtml(r['_savedKey'])}')">Remove</button></td>` + cols.map(c => {
       let val = r[c] || '';
       if (c === 'Sail Date') val = displayDate(val);
-      return `<td>${badge(val)}</td>`;
+      return `<td data-label="${escapeHtml(c)}">${badge(val)}</td>`;
     }).join('') + '</tr>';
   });
   html += '</tbody>';
