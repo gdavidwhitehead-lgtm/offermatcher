@@ -36,6 +36,7 @@ input[type="file"] { padding:8px; border:1px dashed #9fb0cf; border-radius:6px; 
 button { border:1px solid var(--brand); background:var(--brand); color:#fff; border-radius:6px; padding:9px 12px; cursor:pointer; font-weight:800; }
 button:hover { filter:brightness(1.08); }
 button.secondary { background:#fff; color:var(--brand); border-color:#8090bd; }
+button.success { background:#0f6b3e; color:#fff; border-color:#0f6b3e; }
 button.danger { border-color:#9f1d1d; background:#9f1d1d; }
 .tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .tab { background:#fff; color:var(--brand); border:1px solid #aab6d1; }
@@ -60,6 +61,7 @@ tr:hover td { background:#fffaf0; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
 .utility-buttons { display:grid; grid-template-columns:repeat(2, minmax(150px, 1fr)); gap:8px; max-width:420px; }
 .utility-buttons button { width:100%; padding:7px 9px; font-size:12px; min-height:36px; white-space:normal; line-height:1.15; }
+.utility-buttons .success { grid-column:1 / -1; font-size:13px; min-height:40px; }
 .saved-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
 [hidden] { display:none !important; }
 .modal-backdrop { position:fixed; inset:0; background:rgba(7,24,50,.58); z-index:10; display:flex; align-items:center; justify-content:center; padding:18px; }
@@ -122,13 +124,9 @@ tr:hover td { background:#fffaf0; }
 </header>
 <main>
   <section class="card">
-    <h2 style="margin:0 0 8px;font-size:18px;">Upload New Offer PDFs</h2>
-    <div class="help">Choose whether the files belong to Greg or Janet, then upload one or more Club Royale offer PDFs. New rows are parsed in your browser and kept only until this page is closed or refreshed. Matching logic uses the main offer family, so 26WCR304 and 26WCR307 match as 26WCR. 26TIER3 and 2605C05 are kept as their own offer families.</div>
     <div class="controls" style="margin-top:12px;">
-      <div class="control"><label>Owner</label><select id="uploadOwner"><option>Greg</option><option>Janet</option></select></div>
-      <div class="control"><label>Offer PDF files</label><input id="fileInput" type="file" accept="application/pdf,.pdf" multiple /></div>
-      <button onclick="parseUploads()">Parse & Add Offers</button>
       <div class="utility-buttons">
+        <button class="success" onclick="openUploadOffers()">Upload New Offer PDFs</button>
         <button class="secondary" onclick="generateCurrentViewPdf()">Generate Current View PDF</button>
         <button class="secondary" onclick="emailCurrentViewOutlook()">Outlook CSV Draft</button>
         <button class="secondary" onclick="generatePdfAndEmailOutlook()">Outlook PDF Draft</button>
@@ -139,7 +137,6 @@ tr:hover td { background:#fffaf0; }
       <button class="danger" onclick="clearUploadedRows()">Clear Current Rows</button>
     </div>
     <div class="notice">Loaded offers stay in this browser until you clear them or remove offer codes. Use Create Shareable Copy when you want a standalone HTML file with the current offers embedded.</div>
-    <div id="uploadProgress" class="progress"></div>
   </section>
 
   <section class="card">
@@ -165,6 +162,24 @@ tr:hover td { background:#fffaf0; }
     <div class="table-wrap"><table id="dataTable"></table></div>
   </section>
 </main>
+<div id="uploadOffersModal" class="modal-backdrop" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <h2>Upload New Offer PDFs</h2>
+        <div class="small">Choose whether the files belong to Greg or Janet, then upload one or more Club Royale offer PDFs.</div>
+      </div>
+      <button class="secondary" onclick="closeUploadOffers()">Close</button>
+    </div>
+    <div class="help">New rows are parsed in your browser. Matching logic uses the main offer family, so 26WCR304 and 26WCR307 match as 26WCR. 26TIER3 and 2605C05 are kept as their own offer families.</div>
+    <div class="controls" style="margin-top:12px;">
+      <div class="control"><label>Owner</label><select id="uploadOwner"><option>Greg</option><option>Janet</option></select></div>
+      <div class="control"><label>Offer PDF files</label><input id="fileInput" type="file" accept="application/pdf,.pdf" multiple /></div>
+      <button onclick="parseUploads()">Parse & Add Offers</button>
+    </div>
+    <div id="uploadProgress" class="progress"></div>
+  </div>
+</div>
 <div id="statsModal" class="modal-backdrop" hidden>
   <div class="modal-panel">
     <div class="modal-head">
@@ -596,6 +611,12 @@ function openStats() {
 function closeStats() {
   document.getElementById('statsModal').hidden = true;
 }
+function openUploadOffers() {
+  document.getElementById('uploadOffersModal').hidden = false;
+}
+function closeUploadOffers() {
+  document.getElementById('uploadOffersModal').hidden = true;
+}
 function resetFilters() {
   document.getElementById('personFilter').value=''; document.getElementById('mainOfferFilter').value=''; document.getElementById('monthFilter').value=''; document.getElementById('lengthFilter').value=''; document.getElementById('roomFilter').value=''; document.getElementById('portFilter').value=''; document.getElementById('shipFilter').value=''; document.getElementById('sortFilter').value=''; render();
 }
@@ -625,6 +646,7 @@ async function parseUploads() {
     saveUploaded([...current, ...added]);
     progress.textContent += `\nAdded ${added.length} rows. The dashboard has been refreshed.`;
     render();
+    setTimeout(() => closeUploadOffers(), 800);
   }
 }
 async function pdfToText(file) {
@@ -774,7 +796,10 @@ function parseOfferText(text, filename, owner) {
 }
 function clearUploadedRows() {
   if (confirm('Clear all offer rows uploaded during this browser session?')) {
-    sessionRows = []; savedOffers = []; saveCurrentState(); document.getElementById('uploadProgress').textContent='Current rows cleared.'; render();
+    sessionRows = []; savedOffers = []; saveCurrentState();
+    const progress = document.getElementById('uploadProgress');
+    if (progress) progress.textContent='Current rows cleared.';
+    render();
   }
 }
 function openOfferCodeManager() {
