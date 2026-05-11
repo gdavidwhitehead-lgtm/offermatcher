@@ -58,6 +58,8 @@ tr:hover td { background:#fffaf0; }
 .royal-link:hover { text-decoration:underline; }
 .mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
+.utility-buttons { display:grid; grid-template-columns:repeat(2, minmax(150px, 1fr)); gap:8px; max-width:420px; }
+.utility-buttons button { width:100%; padding:7px 9px; font-size:12px; min-height:36px; white-space:normal; line-height:1.15; }
 .saved-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
 [hidden] { display:none !important; }
 .modal-backdrop { position:fixed; inset:0; background:rgba(7,24,50,.58); z-index:10; display:flex; align-items:center; justify-content:center; padding:18px; }
@@ -80,6 +82,8 @@ tr:hover td { background:#fffaf0; }
   .stat .label { font-size:10px; line-height:1.2; }
   .stat .value { font-size:20px; }
   .controls { display:grid; grid-template-columns:1fr; gap:8px; align-items:stretch; }
+  .utility-buttons { grid-template-columns:repeat(2, minmax(0, 1fr)); max-width:none; width:100%; gap:8px; }
+  .utility-buttons button { min-height:38px; font-size:12px; padding:7px 8px; }
   .control { width:100%; }
   input[type="text"], select, input[type="file"], button { width:100%; min-width:0; max-width:none; font-size:16px; }
   button { min-height:42px; }
@@ -124,12 +128,14 @@ tr:hover td { background:#fffaf0; }
       <div class="control"><label>Owner</label><select id="uploadOwner"><option>Greg</option><option>Janet</option></select></div>
       <div class="control"><label>Offer PDF files</label><input id="fileInput" type="file" accept="application/pdf,.pdf" multiple /></div>
       <button onclick="parseUploads()">Parse & Add Offers</button>
-      <button class="secondary" onclick="generateCurrentViewPdf()">Generate Current View PDF</button>
-      <button class="secondary" onclick="emailCurrentViewOutlook()">Outlook CSV Draft</button>
-      <button class="secondary" onclick="generatePdfAndEmailOutlook()">Outlook PDF Draft</button>
-      <button class="secondary" onclick="createShareableCopy()">Create Shareable Copy</button>
-      <button class="secondary" onclick="openStats()">Show Statistics</button>
-      <button class="secondary" onclick="openOfferCodeManager()">Manage Offer Codes</button>
+      <div class="utility-buttons">
+        <button class="secondary" onclick="generateCurrentViewPdf()">Generate Current View PDF</button>
+        <button class="secondary" onclick="emailCurrentViewOutlook()">Outlook CSV Draft</button>
+        <button class="secondary" onclick="generatePdfAndEmailOutlook()">Outlook PDF Draft</button>
+        <button class="secondary" onclick="createShareableCopy()">Create Shareable Copy</button>
+        <button class="secondary" onclick="openStats()">Show Statistics</button>
+        <button class="secondary" onclick="openOfferCodeManager()">Manage Offer Codes</button>
+      </div>
       <button class="danger" onclick="clearUploadedRows()">Clear Current Rows</button>
     </div>
     <div class="notice">Loaded offers stay in this browser until you clear them or remove offer codes. Use Create Shareable Copy when you want a standalone HTML file with the current offers embedded.</div>
