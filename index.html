@@ -475,7 +475,7 @@ function buildMatches(rows) {
     const sharedRoomGroup = roomByRank[Math.max(rankRoom(gb), rankRoom(jb))] || '';
     const exactOfferCodes = offerCodeList(exactRows);
     out.push({
-      'Main Offer': mainOfferList(exactRows), 'Sail Date': sailDateList(exactRows), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
+      'Main Offer': `Greg: ${exactOfferCodes} / Janet: ${exactOfferCodes}`, 'Sail Date': sailDateList(exactRows), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
       'Itinerary': sample['Itinerary'],
       'Room Group': sharedRoomGroup,
       'Greg Offer Code': exactOfferCodes,
@@ -487,6 +487,7 @@ function buildMatches(rows) {
       'Alaska?': isAlaska(sample) ? 'Yes' : 'No', 'Vancouver/Seattle Alaska?': (isAlaska(sample) && /vancouver|seattle/i.test(sample['Departure Port'])) ? 'Yes' : 'No',
       '_sailDates': sailDateValues(exactRows),
       '_linkRow': sample,
+      '_offers': exactRows,
       '_search': exactRows.map(r => Object.values(r).join(' ')).join(' ')
     });
   }
@@ -576,11 +577,11 @@ function setView(v) {
   render();
 }
 function columnsForView() {
-  if (isMatchView()) return ['Itinerary Link','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Greg Offer Code','Janet Offer Code','Greg Best Room','Janet Best Room','Expected Paired Upgrade'];
+  if (isMatchView()) return ['Itinerary Link','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Greg Best Room','Janet Best Room','Expected Paired Upgrade'];
   return ['Itinerary Link','Person','Offer Details','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Type','Room Group','Offer Type'];
 }
 function savedColumns() {
-  return ['Booking Status','Offer Code','Ship','Departure Port','Sail Date','Itinerary','Room Group','Expected Paired Upgrade','Greg Crown & Anchor #','Janet Crown & Anchor #','Casino Booking Hotline'];
+  return ['Booking Status','Offer Code','Greg Offer Code','Janet Offer Code','Ship','Departure Port','Sail Date','Itinerary','Room Group','Expected Paired Upgrade','Greg Crown & Anchor #','Janet Crown & Anchor #','Casino Booking Hotline'];
 }
 function mobileVisibleColumn(c) {
   return ['Itinerary Link','Sail Date','Ship','Departure Port','Itinerary','Room Type'].includes(c);
@@ -1079,7 +1080,12 @@ function savedOfferSnapshot(row) {
   copy['Casino Booking Hotline'] = CASINO_BOOKING_HOTLINE;
   if (isMatchView()) {
     copy['Person'] = 'Greg + Janet';
-    copy['Offer Code'] = [copy['Greg Offer Code'], copy['Janet Offer Code']].filter(Boolean).join(' / ');
+    copy['Offer Code'] = row['Offer Code'] || copy['Greg Offer Code'] || copy['Janet Offer Code'] || '';
+    copy['Greg Offer Code'] = row['Greg Offer Code'] || copy['Offer Code'];
+    copy['Janet Offer Code'] = row['Janet Offer Code'] || copy['Offer Code'];
+  } else {
+    copy['Greg Offer Code'] = copy['Person'] === 'Greg' ? copy['Offer Code'] : '';
+    copy['Janet Offer Code'] = copy['Person'] === 'Janet' ? copy['Offer Code'] : '';
   }
   return copy;
 }
@@ -1137,7 +1143,7 @@ function closeSavedOffers() {
 }
 function generateSavedOffersPdf() {
   if (!savedOffers.length) { alert('Select one or more cruises first.'); return; }
-  openPrintablePdfReport(savedOffers, savedColumns(), 'Club Royale Selected Cruises');
+  openBookingPdfReport(savedOffers);
 }
 function renderSavedOffers() {
   const table = document.getElementById('savedTable');
@@ -1221,6 +1227,66 @@ function wrapBase64(s) {
 }
 function safeFilename(name) {
   return String(name || 'club_royale_email').replace(/[^A-Za-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0,90) || 'club_royale_email';
+}
+function openBookingPdfReport(data) {
+  const generated = new Date().toLocaleString();
+  const cardsHtml = data.map((r, idx) => {
+    const status = cellText(r, 'Booking Status');
+    const fields = [
+      ['Greg Offer Code', cellText(r, 'Greg Offer Code') || cellText(r, 'Offer Code')],
+      ['Janet Offer Code', cellText(r, 'Janet Offer Code') || cellText(r, 'Offer Code')],
+      ['Ship', cellText(r, 'Ship')],
+      ['Departure Port', cellText(r, 'Departure Port')],
+      ['Sailing Date', cellText(r, 'Sail Date')],
+      ['Itinerary', cellText(r, 'Itinerary')],
+      ['Cabin / Upgrade', [cellText(r, 'Room Group'), cellText(r, 'Expected Paired Upgrade') ? `Expected upgrade: ${cellText(r, 'Expected Paired Upgrade')}` : ''].filter(Boolean).join(' | ')],
+      ['Greg Crown & Anchor #', cellText(r, 'Greg Crown & Anchor #')],
+      ['Janet Crown & Anchor #', cellText(r, 'Janet Crown & Anchor #')],
+      ['Casino Booking Hotline', cellText(r, 'Casino Booking Hotline')]
+    ].filter(([, value]) => value);
+    return `<section class="booking-card">
+      <div class="card-top">
+        <div>
+          <div class="eyebrow">Selected Cruise ${idx + 1}</div>
+          <h2>${escapeHtml(cellText(r, 'Ship') || 'Club Royale Cruise')}</h2>
+        </div>
+        <div class="status">${escapeHtml(status)}</div>
+      </div>
+      <div class="route">${escapeHtml(cellText(r, 'Departure Port'))} <span>•</span> ${escapeHtml(cellText(r, 'Sail Date'))}</div>
+      <div class="itinerary">${escapeHtml(cellText(r, 'Itinerary'))}</div>
+      <div class="field-grid">${fields.map(([label, value]) => `<div class="field"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join('')}</div>
+    </section>`;
+  }).join('');
+  const html = `<!DOCTYPE html><html><head><title>Club Royale Selected Cruises</title><style>
+    body{font-family:Arial,Helvetica,sans-serif;color:#071832;margin:0;background:#f3f6fb;}
+    .page{padding:28px;}
+    .report-head{background:#061a3f;color:#fff;border-bottom:6px solid #f6c85f;padding:22px 24px;margin:-28px -28px 24px;}
+    .report-head h1{margin:0 0 6px;font-size:26px;}
+    .report-head .meta{color:#dbe7ff;font-size:12px;}
+    .booking-card{background:#fff;border:1px solid #d7dfec;border-top:5px solid #f6c85f;border-radius:8px;box-shadow:0 8px 20px rgba(6,26,63,.10);padding:18px;margin:0 0 18px;break-inside:avoid;}
+    .card-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:10px;}
+    .eyebrow{color:#001871;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px;}
+    h2{margin:0;color:#061a3f;font-size:20px;}
+    .status{background:#e8f0ff;color:#001871;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:900;white-space:nowrap;}
+    .route{font-size:14px;font-weight:900;color:#071832;margin:8px 0 4px;}
+    .route span{color:#f6c85f;margin:0 6px;}
+    .itinerary{font-size:13px;color:#5c6880;margin-bottom:14px;}
+    .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;}
+    .field{border:1px solid #e2e8f3;border-radius:6px;padding:9px 10px;background:#fbfdff;}
+    .label{font-size:10px;font-weight:900;color:#5c6880;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+    .value{font-size:13px;font-weight:800;color:#071832;word-break:break-word;}
+    @media print{@page{size:portrait;margin:.45in;} body{background:#fff;} .page{padding:0;} .report-head{margin:0 0 18px;}}
+  </style></head><body><div class="page">
+    <div class="report-head"><h1>Club Royale Selected Cruises</h1><div class="meta">${data.length.toLocaleString()} cruise(s) selected • Generated ${escapeHtml(generated)} • Casino Booking Hotline ${escapeHtml(CASINO_BOOKING_HOTLINE)}</div></div>
+    ${cardsHtml}
+  </div></body></html>`;
+  const w = window.open('', '_blank');
+  if (!w) { alert('Allow popups to generate the selected cruise PDF.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 500);
 }
 function openPrintablePdfReport(data, cols = columnsForView(), title = `Club Royale ${viewName(currentView)}`) {
   const generated = new Date().toLocaleString();
