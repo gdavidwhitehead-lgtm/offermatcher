@@ -587,7 +587,7 @@ function buildMatches(rows) {
   for (const [k, list] of groups.entries()) {
     const gregAll = list.filter(r => r.Person === 'Greg');
     const janetAll = list.filter(r => r.Person === 'Janet');
-    const pairKey = r => [r['Offer Code'], r['Sail Date']].join('|');
+    const pairKey = r => [r['Main Offer'], r['Sail Date']].join('|');
     const gregPairs = new Set(gregAll.map(pairKey));
     const commonPairs = new Set(janetAll.map(pairKey).filter(key => gregPairs.has(key)));
     if (!commonPairs.size) continue;
@@ -598,13 +598,15 @@ function buildMatches(rows) {
     const sample = [...exactRows].sort((a,b) => compare(a['Sail Date'], b['Sail Date'], 'Sail Date'))[0];
     const gb = bestRoom(greg), jb = bestRoom(janet);
     const sharedRoomGroup = roomByRank[Math.max(rankRoom(gb), rankRoom(jb))] || '';
+    const gregOfferCodes = offerCodeList(greg);
+    const janetOfferCodes = offerCodeList(janet);
     const exactOfferCodes = offerCodeList(exactRows);
     out.push({
-      'Main Offer': `Greg: ${exactOfferCodes} / Janet: ${exactOfferCodes}`, 'Sail Date': sailDateList(exactRows), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
+      'Main Offer': `Greg: ${gregOfferCodes} / Janet: ${janetOfferCodes}`, 'Sail Date': sailDateList(exactRows), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
       'Itinerary': sample['Itinerary'],
       'Room Group': sharedRoomGroup,
-      'Greg Offer Code': exactOfferCodes,
-      'Janet Offer Code': exactOfferCodes,
+      'Greg Offer Code': gregOfferCodes,
+      'Janet Offer Code': janetOfferCodes,
       'Greg Offer(s) / Room(s)': offerRoomList(greg),
       'Janet Offer(s) / Room(s)': offerRoomList(janet),
       'Offer Code': exactOfferCodes,
