@@ -413,6 +413,21 @@ function rowSailDates(row) {
   if (Array.isArray(row['_sailDates']) && row['_sailDates'].length) return row['_sailDates'];
   return row['Sail Date'] ? [row['Sail Date']] : [];
 }
+function availableSailDatesForSelection(row) {
+  const savedDates = rowSailDates(row).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+  if (savedDates.length > 1) return savedDates;
+  const selectedCodes = offerCodesForRow(row);
+  if (!selectedCodes.length) return savedDates;
+  const selectedCodeSet = new Set(selectedCodes);
+  const matches = allRows().filter(r => {
+    if (!selectedCodeSet.has(normalizeOfferCode(r['Offer Code']))) return false;
+    if (keyText(r['Ship']) !== keyText(row['Ship'])) return false;
+    if (departurePortKey(r['Departure Port']) !== departurePortKey(row['Departure Port'])) return false;
+    return keyText(r['Itinerary']) === keyText(row['Itinerary']);
+  });
+  const dates = sailDateValues(matches);
+  return dates.length ? dates : savedDates;
+}
 function sailDateHtml(row) {
   const dates = rowSailDates(row);
   if (dates.length <= 1) return escapeHtml(displayDate(dates[0] || row['Sail Date']));
@@ -1148,6 +1163,13 @@ function updateSelectedSailDate(index, sailDate) {
   saveCurrentState();
   renderSavedOffers();
 }
+function selectedSailDateValue(row) {
+  const dates = availableSailDatesForSelection(row);
+  return row['Selected Sail Date'] || dates[0] || row['Sail Date'] || '';
+}
+function selectedSailDateText(row) {
+  return displayDate(selectedSailDateValue(row));
+}
 function clearSavedOffers() {
   if (!savedOffers.length) return;
   if (confirm('Clear the selected cruise list? These cruises will return to the main offer tables.')) {
@@ -1190,8 +1212,8 @@ function renderSavedOffers() {
   table.innerHTML = html;
 }
 function selectedSailDateControl(row, index) {
-  const dates = rowSailDates(row);
-  const selected = row['Selected Sail Date'] || dates[0] || row['Sail Date'] || '';
+  const dates = availableSailDatesForSelection(row);
+  const selected = selectedSailDateValue(row);
   if (dates.length <= 1) return escapeHtml(displayDate(selected));
   return `<select onchange="updateSelectedSailDate(${index}, this.value)">${dates.map(date => `<option value="${escapeHtml(date)}"${date === selected ? ' selected' : ''}>${escapeHtml(displayDate(date))}</option>`).join('')}</select>`;
 }
@@ -1266,7 +1288,7 @@ function openBookingPdfReport(data) {
       ['Janet Offer Code', cellText(r, 'Janet Offer Code') || cellText(r, 'Offer Code')],
       ['Ship', cellText(r, 'Ship')],
       ['Departure Port', cellText(r, 'Departure Port')],
-      ['Sailing Date', cellText(r, 'Sail Date')],
+      ['Sailing Date', selectedSailDateText(r)],
       ['Itinerary', cellText(r, 'Itinerary')],
       ['Cabin / Upgrade', [cellText(r, 'Room Group'), cellText(r, 'Expected Paired Upgrade') ? `Expected upgrade: ${cellText(r, 'Expected Paired Upgrade')}` : ''].filter(Boolean).join(' | ')],
       ['Greg Crown & Anchor #', cellText(r, 'Greg Crown & Anchor #')],
@@ -1281,7 +1303,7 @@ function openBookingPdfReport(data) {
         </div>
         <div class="status">${escapeHtml(status)}</div>
       </div>
-      <div class="route">${escapeHtml(cellText(r, 'Departure Port'))} <span>•</span> ${escapeHtml(cellText(r, 'Sail Date'))}</div>
+      <div class="route">${escapeHtml(cellText(r, 'Departure Port'))} <span>•</span> ${escapeHtml(selectedSailDateText(r))}</div>
       <div class="itinerary">${escapeHtml(cellText(r, 'Itinerary'))}</div>
       <div class="field-grid">${fields.map(([label, value]) => `<div class="field"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div></div>`).join('')}</div>
     </section>`;
