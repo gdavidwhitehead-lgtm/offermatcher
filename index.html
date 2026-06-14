@@ -216,7 +216,10 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
         <h2>Manage Offer Codes</h2>
         <div class="small">Remove expired offers from the loaded website data.</div>
       </div>
-      <button class="secondary" onclick="closeOfferCodeManager()">Close</button>
+      <div class="actions">
+        <button class="danger" onclick="clearAllOfferCodes()">Clear All Offer Codes</button>
+        <button class="secondary" onclick="closeOfferCodeManager()">Close</button>
+      </div>
     </div>
     <div class="table-wrap" style="max-height:60vh;"><table id="offerCodeTable" class="code-table"></table></div>
   </div>
@@ -901,6 +904,17 @@ function openOfferCodeManager() {
 }
 function closeOfferCodeManager() {
   document.getElementById('offerCodeModal').hidden = true;
+}
+function clearAllOfferCodes() {
+  if (!sessionRows.length) return;
+  if (!confirm(`Clear all ${sessionRows.length.toLocaleString()} loaded offer row(s)?`)) return;
+  sessionRows = [];
+  savedOffers = [];
+  saveCurrentState();
+  const progress = document.getElementById('uploadProgress');
+  if (progress) progress.textContent = 'All loaded offer codes have been cleared.';
+  renderOfferCodeManager();
+  render();
 }
 function renderOfferCodeManager() {
   const table = document.getElementById('offerCodeTable');
