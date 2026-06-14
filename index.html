@@ -88,6 +88,9 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 .modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .modal-head h2 { margin:0 0 4px; font-size:18px; }
 .code-table { min-width:720px; }
+.date-choice-list { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:8px; margin-top:12px; }
+.date-choice-list button { width:100%; background:#fff; color:var(--brand); border-color:var(--line); text-align:left; }
+.date-choice-list button.active { background:var(--brand); color:#fff; border-color:var(--brand); box-shadow:inset 0 4px 0 var(--gold); }
 @media (max-width:900px) { .grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); } main { padding-left:12px; padding-right:12px; } .brand-bar { grid-template-columns:auto minmax(0,1fr); padding:20px 16px 14px; } .hero-badge { grid-column:1 / -1; justify-self:start; width:100%; } header h1 { font-size:30px; } .logo-mark { width:52px; height:52px; } .utility-buttons { grid-template-columns:repeat(2, minmax(150px, 1fr)); } }
 @media (max-width:700px) {
   body { background:#eef2f8; }
@@ -249,6 +252,18 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
       </div>
     </div>
     <div class="table-wrap" style="max-height:60vh;"><table id="savedTable"></table></div>
+  </div>
+</div>
+<div id="dateChooserModal" class="modal-backdrop" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <h2>Choose Sailing Date</h2>
+        <div class="small" id="dateChooserSummary">Select the sailing date for this booking.</div>
+      </div>
+      <button class="secondary" onclick="closeDateChooser()">Close</button>
+    </div>
+    <div id="dateChoiceList" class="date-choice-list"></div>
   </div>
 </div>
 <div id="offerCodeModal" class="modal-backdrop" hidden>
@@ -1162,6 +1177,7 @@ function updateSelectedSailDate(index, sailDate) {
   savedOffers[index]['Selected Sail Date'] = sailDate;
   saveCurrentState();
   renderSavedOffers();
+  renderDateChooser(index);
 }
 function selectedSailDateValue(row) {
   const dates = availableSailDatesForSelection(row);
@@ -1215,7 +1231,23 @@ function selectedSailDateControl(row, index) {
   const dates = availableSailDatesForSelection(row);
   const selected = selectedSailDateValue(row);
   if (dates.length <= 1) return escapeHtml(displayDate(selected));
-  return `<select onchange="updateSelectedSailDate(${index}, this.value)">${dates.map(date => `<option value="${escapeHtml(date)}"${date === selected ? ' selected' : ''}>${escapeHtml(displayDate(date))}</option>`).join('')}</select>`;
+  return `<button class="mini-button secondary" onclick="openDateChooser(${index})">${escapeHtml(displayDate(selected))} (${dates.length.toLocaleString()} dates)</button>`;
+}
+function openDateChooser(index) {
+  renderDateChooser(index);
+  document.getElementById('dateChooserModal').hidden = false;
+}
+function closeDateChooser() {
+  document.getElementById('dateChooserModal').hidden = true;
+}
+function renderDateChooser(index) {
+  const row = savedOffers[index];
+  const list = document.getElementById('dateChoiceList');
+  if (!row || !list) return;
+  const dates = availableSailDatesForSelection(row);
+  const selected = selectedSailDateValue(row);
+  document.getElementById('dateChooserSummary').textContent = `${row['Ship'] || 'Selected cruise'} from ${row['Departure Port'] || 'departure port'} - ${dates.length.toLocaleString()} available date(s)`;
+  list.innerHTML = dates.map(date => `<button class="${date === selected ? 'active' : ''}" onclick="updateSelectedSailDate(${index}, '${escapeHtml(date)}')">${escapeHtml(displayDate(date))}</button>`).join('');
 }
 function emailCurrentViewOutlook() {
   const data = filteredRows();
