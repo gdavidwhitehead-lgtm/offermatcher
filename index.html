@@ -596,7 +596,7 @@ function mobileVisibleColumn(c) {
 function cellText(row, c) {
   if (c === 'Itinerary Link') return royalCaribbeanUrl(row);
   if (c === 'Offer Details') return offerDetailsText(row);
-  if (c === 'Sail Date') return row['_sailDates'] ? rowSailDates(row).map(displayDate).join('; ') : displayDate(row[c]);
+  if (c === 'Sail Date') return row['Selected Sail Date'] ? displayDate(row['Selected Sail Date']) : row['_sailDates'] ? rowSailDates(row).map(displayDate).join('; ') : displayDate(row[c]);
   if (c === 'Booking Status') return row['Booking Status'] || 'Selected';
   if (c === 'Greg Crown & Anchor #') return GREG_CROWN_ANCHOR;
   if (c === 'Janet Crown & Anchor #') return JANET_CROWN_ANCHOR;
@@ -1090,6 +1090,7 @@ function savedOfferSnapshot(row) {
   copy['_savedKey'] = offerSaveKey(copy);
   copy['Source View'] = viewName(currentView);
   copy['Booking Status'] = 'Selected';
+  copy['Selected Sail Date'] = rowSailDates(copy)[0] || copy['Sail Date'] || '';
   copy['Greg Crown & Anchor #'] = GREG_CROWN_ANCHOR;
   copy['Janet Crown & Anchor #'] = JANET_CROWN_ANCHOR;
   copy['Casino Booking Hotline'] = CASINO_BOOKING_HOTLINE;
@@ -1141,6 +1142,12 @@ function markSavedOfferForBooking(key) {
   saveCurrentState();
   renderSavedOffers();
 }
+function updateSelectedSailDate(index, sailDate) {
+  if (!savedOffers[index]) return;
+  savedOffers[index]['Selected Sail Date'] = sailDate;
+  saveCurrentState();
+  renderSavedOffers();
+}
 function clearSavedOffers() {
   if (!savedOffers.length) return;
   if (confirm('Clear the selected cruise list? These cruises will return to the main offer tables.')) {
@@ -1169,17 +1176,24 @@ function renderSavedOffers() {
     return;
   }
   let html = '<thead><tr><th>Actions</th>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr></thead><tbody>';
-  savedOffers.forEach(r => {
+  savedOffers.forEach((r, index) => {
     const key = escapeHtml(r['_savedKey']);
     const isBooking = r['Booking Status'] === 'Ready to Book';
     const actions = `${isBooking ? '<button class="mini-button saved" disabled>Ready</button>' : `<button class="mini-button" onclick="markSavedOfferForBooking('${key}')">Book</button>`} <button class="mini-button secondary" onclick="removeSavedOffer('${key}')">Not Booking</button>`;
     html += `<tr><td data-label="Actions">${actions}</td>` + cols.map(c => {
+      if (c === 'Sail Date') return `<td data-label="${escapeHtml(c)}">${selectedSailDateControl(r, index)}</td>`;
       const val = cellText(r, c);
       return `<td data-label="${escapeHtml(c)}">${badge(val)}</td>`;
     }).join('') + '</tr>';
   });
   html += '</tbody>';
   table.innerHTML = html;
+}
+function selectedSailDateControl(row, index) {
+  const dates = rowSailDates(row);
+  const selected = row['Selected Sail Date'] || dates[0] || row['Sail Date'] || '';
+  if (dates.length <= 1) return escapeHtml(displayDate(selected));
+  return `<select onchange="updateSelectedSailDate(${index}, this.value)">${dates.map(date => `<option value="${escapeHtml(date)}"${date === selected ? ' selected' : ''}>${escapeHtml(displayDate(date))}</option>`).join('')}</select>`;
 }
 function emailCurrentViewOutlook() {
   const data = filteredRows();
