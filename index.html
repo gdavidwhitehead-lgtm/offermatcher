@@ -76,6 +76,7 @@ tr:hover td { background:#fffaf0; }
 .date-popover summary::-webkit-details-marker { display:none; }
 .date-popover .offer-detail-list { position:absolute; z-index:6; top:100%; left:0; min-width:190px; max-height:260px; overflow:auto; margin-top:6px; padding:10px 12px; background:#fff; border:1px solid var(--line); border-top:4px solid var(--gold); border-radius:6px; box-shadow:0 14px 32px rgba(6,26,63,.18); white-space:nowrap; }
 details summary { cursor:pointer; color:var(--brand); font-weight:800; }
+.date-choice-item { border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:#fff; color:var(--brand); font-weight:900; }
 .mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
 .utility-buttons { display:grid; grid-template-columns:repeat(4, minmax(150px, 1fr)); gap:10px; width:100%; }
@@ -266,6 +267,18 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
     <div id="dateChoiceList" class="date-choice-list"></div>
   </div>
 </div>
+<div id="tableDateModal" class="modal-backdrop" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <div>
+        <h2>Available Sailing Dates</h2>
+        <div class="small" id="tableDateSummary">Available sailing dates for this cruise.</div>
+      </div>
+      <button class="secondary" onclick="closeTableDateList()">Close</button>
+    </div>
+    <div id="tableDateList" class="date-choice-list"></div>
+  </div>
+</div>
 <div id="offerCodeModal" class="modal-backdrop" hidden>
   <div class="modal-panel">
     <div class="modal-head">
@@ -294,6 +307,7 @@ let sessionRows = [];
 let currentView = 'individual';
 let sortState = { key: 'Sail Date', dir: 1 };
 let savedOffers = [];
+let currentRenderedRows = [];
 
 function uploadedRows() {
   return sessionRows;
@@ -443,11 +457,11 @@ function availableSailDatesForSelection(row) {
   const dates = sailDateValues(matches);
   return dates.length ? dates : savedDates;
 }
-function sailDateHtml(row) {
+function sailDateHtml(row, index = null) {
   const dates = rowSailDates(row);
   if (dates.length <= 1) return escapeHtml(displayDate(dates[0] || row['Sail Date']));
-  const details = dates.map(d => `<div>${escapeHtml(displayDate(d))}</div>`).join('');
-  return `<details class="date-popover"><summary>${dates.length.toLocaleString()} dates</summary><div class="offer-detail-list">${details}</div></details>`;
+  if (index === null) return `${dates.length.toLocaleString()} dates`;
+  return `<button class="mini-button secondary" onclick="openTableDateList(${index})">${dates.length.toLocaleString()} dates</button>`;
 }
 function offerDetailsText(row) {
   const rows = row['_offers'] || [row];
@@ -645,6 +659,7 @@ function render() {
   refreshFilters();
   renderStats();
   const data = filteredRows();
+  currentRenderedRows = data;
   const cols = columnsForView();
   document.getElementById('resultCount').textContent = `${data.length.toLocaleString()} row(s) shown`;
   const table = document.getElementById('dataTable');
@@ -656,7 +671,7 @@ function render() {
       const mobileHidden = mobileVisibleColumn(c) ? 'false' : 'true';
       if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${royalItineraryLinkHtml(r)}</td>`;
       if (c === 'Offer Details') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${offerDetailsHtml(r)}</td>`;
-      if (c === 'Sail Date') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${sailDateHtml(r)}</td>`;
+      if (c === 'Sail Date') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${sailDateHtml(r, i)}</td>`;
       let val = r[c] || '';
       return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${badge(val)}</td>`;
     }).join('') + '</tr>';
@@ -1239,6 +1254,21 @@ function openDateChooser(index) {
 }
 function closeDateChooser() {
   document.getElementById('dateChooserModal').hidden = true;
+}
+function openTableDateList(index) {
+  const row = currentRenderedRows[index];
+  const list = document.getElementById('tableDateList');
+  if (!row || !list) return;
+  const dates = rowSailDates(row);
+  const summary = document.getElementById('tableDateSummary');
+  if (summary) {
+    summary.textContent = `${row['Ship'] || 'Cruise'} from ${row['Departure Port'] || 'departure port'} - ${dates.length.toLocaleString()} available date(s)`;
+  }
+  list.innerHTML = dates.map(date => `<div class="date-choice-item">${escapeHtml(displayDate(date))}</div>`).join('');
+  document.getElementById('tableDateModal').hidden = false;
+}
+function closeTableDateList() {
+  document.getElementById('tableDateModal').hidden = true;
 }
 function renderDateChooser(index) {
   const row = savedOffers[index];
