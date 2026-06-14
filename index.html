@@ -44,6 +44,7 @@ label { font-size:11px; color:var(--navy); font-weight:900; text-transform:upper
 input, select, button { font-family: Arial, Helvetica, sans-serif; font-size:14px; }
 input[type="text"], select { padding:11px 12px; border:1px solid var(--line); border-radius:4px; background:#fff; min-width:150px; box-shadow:0 1px 0 rgba(6,26,63,.04); }
 input[type="text"]:focus, select:focus { outline:2px solid rgba(246,200,95,.55); border-color:var(--brand); }
+input.compact-input { min-width:135px; width:150px; padding:7px 8px; font-size:12px; }
 input[type="file"] { padding:9px; border:1px dashed #9fb0cf; border-radius:4px; background:#f9fbff; max-width:350px; }
 button { border:1px solid var(--brand); background:var(--brand); color:#fff; border-radius:4px; padding:10px 13px; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:.02em; }
 button:hover { filter:brightness(1.06); transform:translateY(-1px); }
@@ -632,7 +633,7 @@ function columnsForView() {
   return ['Itinerary Link','Person','Offer Details','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Type','Room Group','Offer Type'];
 }
 function savedColumns() {
-  return ['Booking Status','Offer Code','Greg Offer Code','Janet Offer Code','Ship','Departure Port','Sail Date','Itinerary','Room Group','Expected Paired Upgrade','Greg Crown & Anchor #','Janet Crown & Anchor #','Casino Booking Hotline'];
+  return ['Booking Status','Offer Code','Greg Offer Code','Janet Offer Code','Next Cruise #','Ship','Departure Port','Sail Date','Itinerary','Room Group','Expected Paired Upgrade','Greg Crown & Anchor #','Janet Crown & Anchor #','Casino Booking Hotline'];
 }
 function mobileVisibleColumn(c) {
   return ['Itinerary Link','Sail Date','Ship','Departure Port','Itinerary','Room Type'].includes(c);
@@ -1139,6 +1140,7 @@ function savedOfferSnapshot(row) {
   copy['Greg Crown & Anchor #'] = GREG_CROWN_ANCHOR;
   copy['Janet Crown & Anchor #'] = JANET_CROWN_ANCHOR;
   copy['Casino Booking Hotline'] = CASINO_BOOKING_HOTLINE;
+  copy['Next Cruise #'] = '';
   if (isMatchView()) {
     copy['Person'] = 'Greg + Janet';
     copy['Offer Code'] = row['Offer Code'] || copy['Greg Offer Code'] || copy['Janet Offer Code'] || '';
@@ -1194,6 +1196,11 @@ function updateSelectedSailDate(index, sailDate) {
   renderSavedOffers();
   renderDateChooser(index);
 }
+function updateNextCruiseNumber(index, value) {
+  if (!savedOffers[index]) return;
+  savedOffers[index]['Next Cruise #'] = value.trim();
+  saveCurrentState();
+}
 function selectedSailDateValue(row) {
   const dates = availableSailDatesForSelection(row);
   return row['Selected Sail Date'] || dates[0] || row['Sail Date'] || '';
@@ -1235,6 +1242,7 @@ function renderSavedOffers() {
     const actions = `${isBooking ? '<button class="mini-button saved" disabled>Ready</button>' : `<button class="mini-button" onclick="markSavedOfferForBooking('${key}')">Book</button>`} <button class="mini-button secondary" onclick="removeSavedOffer('${key}')">Not Booking</button>`;
     html += `<tr><td data-label="Actions">${actions}</td>` + cols.map(c => {
       if (c === 'Sail Date') return `<td data-label="${escapeHtml(c)}">${selectedSailDateControl(r, index)}</td>`;
+      if (c === 'Next Cruise #') return `<td data-label="${escapeHtml(c)}"><input class="compact-input" type="text" value="${escapeHtml(r['Next Cruise #'] || '')}" placeholder="Future booking #" oninput="updateNextCruiseNumber(${index}, this.value)"></td>`;
       const val = cellText(r, c);
       return `<td data-label="${escapeHtml(c)}">${badge(val)}</td>`;
     }).join('') + '</tr>';
@@ -1353,6 +1361,7 @@ function openBookingPdfReport(data) {
       ['Sailing Date', selectedSailDateText(r)],
       ['Itinerary', cellText(r, 'Itinerary')],
       ['Cabin / Upgrade', [cellText(r, 'Room Group'), cellText(r, 'Expected Paired Upgrade') ? `Expected upgrade: ${cellText(r, 'Expected Paired Upgrade')}` : ''].filter(Boolean).join(' | ')],
+      ['Next Cruise Future Booking #', cellText(r, 'Next Cruise #')],
       ['Greg Crown & Anchor #', cellText(r, 'Greg Crown & Anchor #')],
       ['Janet Crown & Anchor #', cellText(r, 'Janet Crown & Anchor #')],
       ['Casino Booking Hotline', cellText(r, 'Casino Booking Hotline')]
