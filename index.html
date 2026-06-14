@@ -551,10 +551,13 @@ function offerDetailsHtml(row) {
   }).join('');
   return `<details><summary>${rows.length.toLocaleString()} offer${rows.length === 1 ? '' : 's'}</summary><div class="offer-detail-list">${details}</div></details>`;
 }
+function isTwoGuestCruiseFare(row) {
+  return /cruise\s+fare\s+for\s+2\s+guests?/i.test(row['Offer Type'] || '');
+}
 function buildIndividualSailings(rows) {
   const groups = new Map();
   rows.forEach(r => {
-    if ((r['Offer Type']||'').toLowerCase() !== 'cruise fare for 2 guests') return;
+    if (!isTwoGuestCruiseFare(r)) return;
     const k = individualSailingKey(r);
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(r);
@@ -578,7 +581,7 @@ function buildIndividualSailings(rows) {
 function buildMatches(rows) {
   const groups = new Map();
   rows.forEach(r => {
-    if ((r['Offer Type']||'').toLowerCase() !== 'cruise fare for 2 guests') return;
+    if (!isTwoGuestCruiseFare(r)) return;
     const k = itineraryGroupKey(r);
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(r);
