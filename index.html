@@ -505,7 +505,8 @@ function isIndividualView() {
   return currentView === 'individual' || currentView === 'alaskaIndividual';
 }
 function filteredRows() {
-  const rows = allRows();
+  const usedCodes = selectedOfferCodeSet();
+  const rows = allRows().filter(r => !usedCodes.has(normalizeOfferCode(r['Offer Code'])));
   const matches = buildMatches(rows);
   const individual = buildIndividualSailings(rows);
   let data = isMatchView() ? matches : individual;
@@ -560,14 +561,15 @@ function offerCodesForRow(row) {
     .map(normalizeOfferCode)
     .filter(Boolean))];
 }
+function selectedOfferCodeSet() {
+  const codes = new Set();
+  savedOffers.forEach(row => offerCodesForRow(row).forEach(code => codes.add(code)));
+  return codes;
+}
 function rowMatchesSavedSelection(row, saved) {
-  if (itineraryGroupKey(row) !== itineraryGroupKey(saved)) return false;
   const rowCodes = new Set(offerCodesForRow(row));
   const savedCodes = offerCodesForRow(saved);
-  if (!savedCodes.some(code => rowCodes.has(code))) return false;
-  const rowDates = new Set(rowSailDates(row));
-  const savedDates = rowSailDates(saved);
-  return !rowDates.size || !savedDates.length || savedDates.some(date => rowDates.has(date));
+  return savedCodes.some(code => rowCodes.has(code));
 }
 function compare(a,b,key) {
   if (key && /date/i.test(key)) return String(a||'').localeCompare(String(b||''));
@@ -1077,7 +1079,15 @@ function saveOfferFromCurrentView(index) {
 }
 function savedOfferSnapshot(row) {
   const copy = {...row};
-  copy['_savedKey'] = offerSaveKey(row);
+  if (isIndividualView() && Array.isArray(row['_offers']) && row['_offers'].length) {
+    const best = bestOfferRow(row['_offers']);
+    copy['Offer Code'] = best['Offer Code'];
+    copy['Main Offer'] = best['Main Offer'];
+    copy['Room Type'] = best['Room Type'];
+    copy['Room Group'] = best['Room Group'];
+    copy['_offers'] = [best];
+  }
+  copy['_savedKey'] = offerSaveKey(copy);
   copy['Source View'] = viewName(currentView);
   copy['Booking Status'] = 'Selected';
   copy['Greg Crown & Anchor #'] = GREG_CROWN_ANCHOR;
