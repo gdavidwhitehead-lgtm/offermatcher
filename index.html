@@ -6,45 +6,59 @@
 <title>Greg + Janet Club Royale Offer Matcher</title>
 <style>
 :root {
-  --bg:#eef2f8; --panel:#ffffff; --text:#071832; --muted:#58657a; --line:#cfd8e8;
-  --brand:#001871; --brand2:#e7edf8; --gold:#f6c85f; --gold2:#fff4cf;
-  --green:#0f6b3e; --greenbg:#dff6e9; --orange:#956019; --orangebg:#fff0d2;
-  --red:#991b1b; --redbg:#fee2e2; --shadow:0 16px 34px rgba(0,24,113,.12);
+  --bg:#f3f6fb; --panel:#ffffff; --text:#071832; --muted:#5c6880; --line:#d7dfec;
+  --brand:#001871; --navy:#061a3f; --brand2:#e8f0ff; --gold:#f6c85f; --gold2:#fff5cf;
+  --aqua:#12b5cb; --aqua-bg:#e9fbfd; --green:#0f6b3e; --greenbg:#dff6e9; --orange:#956019; --orangebg:#fff0d2;
+  --red:#991b1b; --redbg:#fee2e2; --shadow:0 18px 42px rgba(6,26,63,.14);
 }
 * { box-sizing: border-box; }
-body { margin:0; font-family: Arial, Helvetica, sans-serif; background:linear-gradient(180deg,#f8fbff 0,#eef2f8 260px,#e7edf7 100%); color:var(--text); }
-header { background:linear-gradient(135deg,#001247 0%,#001871 48%,#003b88 100%); color:#fff; padding:0; border-bottom:5px solid var(--gold); box-shadow:0 12px 30px rgba(0,24,113,.22); }
-.brand-bar { display:flex; align-items:center; gap:16px; padding:24px 28px; max-width:1500px; margin:0 auto; }
-.logo-mark { width:56px; height:56px; border-radius:50%; background:#fff; border:2px solid rgba(246,200,95,.95); padding:10px; box-shadow:0 8px 20px rgba(0,0,0,.22); flex:0 0 auto; }
+body { margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--bg); color:var(--text); }
+header { position:relative; color:#fff; padding:0 0 76px; background:#061a3f; overflow:hidden; box-shadow:0 16px 34px rgba(6,26,63,.2); }
+header::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 82% 16%, rgba(18,181,203,.38), transparent 34%), linear-gradient(135deg,#061a3f 0%,#001871 55%,#063a7a 100%); }
+header::after { content:""; position:absolute; inset:auto 0 0; height:6px; background:linear-gradient(90deg,var(--gold),#ffdd7a,var(--gold)); }
+.top-nav { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; gap:18px; max-width:1500px; margin:0 auto; padding:14px 28px; border-bottom:1px solid rgba(255,255,255,.18); }
+.top-links { display:flex; gap:18px; flex-wrap:wrap; color:#dbe7ff; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.phone-pill { border:1px solid rgba(246,200,95,.85); color:#fff; border-radius:999px; padding:7px 12px; font-weight:900; font-size:12px; background:rgba(255,255,255,.08); }
+.brand-bar { position:relative; z-index:1; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:18px; padding:34px 28px 22px; max-width:1500px; margin:0 auto; }
+.logo-mark { width:64px; height:64px; border-radius:50%; background:#fff; border:3px solid rgba(246,200,95,.98); padding:11px; box-shadow:0 12px 28px rgba(0,0,0,.28); flex:0 0 auto; }
 .brand-text { min-width:0; }
-.eyebrow { margin:0 0 4px; color:var(--gold); font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
-header h1 { margin:0 0 6px; font-size:30px; letter-spacing:.01em; }
-header p { margin:0; opacity:.9; font-size:14px; }
-main { padding:18px 24px 40px; max-width: 1500px; margin:0 auto; }
-.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); padding:16px; margin-bottom:16px; }
+.eyebrow { margin:0 0 8px; color:var(--gold); font-size:12px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+header h1 { margin:0 0 8px; font-size:42px; line-height:1; letter-spacing:.01em; text-transform:uppercase; }
+header p { margin:0; max-width:680px; opacity:.94; font-size:15px; line-height:1.45; }
+.hero-badge { justify-self:end; min-width:220px; border:1px solid rgba(255,255,255,.24); border-top:4px solid var(--gold); border-radius:8px; padding:15px; background:rgba(255,255,255,.1); box-shadow:0 12px 30px rgba(0,0,0,.18); }
+.hero-badge .label { color:#dbe7ff; font-size:11px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
+.hero-badge .value { color:#fff; font-size:22px; font-weight:900; margin-top:5px; }
+main { padding:0 24px 42px; max-width:1500px; margin:-52px auto 0; position:relative; z-index:2; }
+.card { background:var(--panel); border:1px solid rgba(215,223,236,.9); border-radius:8px; box-shadow:var(--shadow); padding:18px; margin-bottom:16px; }
+.quick-actions-card { border-top:5px solid var(--gold); }
+.results-card { padding:0; overflow:hidden; }
+.section-head { padding:18px 18px 0; display:flex; justify-content:space-between; gap:12px; align-items:flex-end; flex-wrap:wrap; }
+.section-title { margin:0; color:var(--navy); font-size:20px; line-height:1.15; text-transform:uppercase; letter-spacing:.04em; }
+.section-subtitle { margin:4px 0 0; color:var(--muted); font-size:13px; }
 .grid { display:grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap:12px; }
 .stat { background:linear-gradient(180deg,#fff 0%,#f7f9fd 100%); border:1px solid var(--line); border-top:4px solid var(--gold); border-radius:8px; padding:14px; }
 .stat .label { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
 .stat .value { color:var(--brand); font-size:26px; font-weight:800; margin-top:5px; }
 .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:end; }
 .control { display:flex; flex-direction:column; gap:5px; }
-label { font-size:12px; color:var(--muted); font-weight:700; }
+label { font-size:11px; color:var(--navy); font-weight:900; text-transform:uppercase; letter-spacing:.05em; }
 input, select, button { font-family: Arial, Helvetica, sans-serif; font-size:14px; }
-input[type="text"], select { padding:9px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; min-width:150px; }
+input[type="text"], select { padding:11px 12px; border:1px solid var(--line); border-radius:4px; background:#fff; min-width:150px; box-shadow:0 1px 0 rgba(6,26,63,.04); }
 input[type="text"]:focus, select:focus { outline:2px solid rgba(246,200,95,.55); border-color:var(--brand); }
-input[type="file"] { padding:8px; border:1px dashed #9fb0cf; border-radius:6px; background:#f9fbff; max-width:350px; }
-button { border:1px solid var(--brand); background:var(--brand); color:#fff; border-radius:6px; padding:9px 12px; cursor:pointer; font-weight:800; }
-button:hover { filter:brightness(1.08); }
-button.secondary { background:#fff; color:var(--brand); border-color:#8090bd; }
+input[type="file"] { padding:9px; border:1px dashed #9fb0cf; border-radius:4px; background:#f9fbff; max-width:350px; }
+button { border:1px solid var(--brand); background:var(--brand); color:#fff; border-radius:4px; padding:10px 13px; cursor:pointer; font-weight:900; text-transform:uppercase; letter-spacing:.02em; }
+button:hover { filter:brightness(1.06); transform:translateY(-1px); }
+button.secondary { background:#fff; color:var(--brand); border-color:#9aa8c6; }
 button.success { background:#0f6b3e; color:#fff; border-color:#0f6b3e; }
 button.danger { border-color:#9f1d1d; background:#9f1d1d; }
-.tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-.tab { background:#fff; color:var(--brand); border:1px solid #aab6d1; }
-.tab.active { background:var(--brand); color:#fff; border-color:var(--brand); box-shadow:inset 0 -3px 0 var(--gold); }
-.table-wrap { overflow:auto; border:1px solid var(--line); border-radius:8px; max-height:68vh; background:#fff; }
+.tabs { display:flex; gap:0; flex-wrap:wrap; margin:0; padding:14px 18px 0; border-bottom:1px solid var(--line); background:#f8fbff; }
+.tab { background:#fff; color:var(--brand); border:1px solid #aab6d1; border-bottom:0; border-radius:6px 6px 0 0; margin-right:8px; }
+.tab.active { background:var(--navy); color:#fff; border-color:var(--navy); box-shadow:inset 0 4px 0 var(--gold); }
+.filter-panel { padding:16px 18px 14px; background:#fff; border-bottom:1px solid var(--line); }
+.table-wrap { overflow:auto; border:0; border-radius:0; max-height:68vh; background:#fff; }
 table { width:100%; border-collapse:separate; border-spacing:0; min-width:1050px; }
-th, td { border-bottom:1px solid var(--line); padding:8px 10px; font-size:13px; text-align:left; vertical-align:top; }
-th { position:sticky; top:0; background:#071832; color:#fff; z-index:1; cursor:pointer; white-space:nowrap; border-bottom:3px solid var(--gold); }
+th, td { border-bottom:1px solid var(--line); padding:10px 12px; font-size:13px; text-align:left; vertical-align:top; }
+th { position:sticky; top:0; background:#061a3f; color:#fff; z-index:1; cursor:pointer; white-space:nowrap; border-bottom:4px solid var(--gold); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
 tr:hover td { background:#fffaf0; }
 .badge { display:inline-block; border-radius:999px; padding:3px 8px; font-size:12px; font-weight:700; white-space:nowrap; }
 .badge.green { background:var(--greenbg); color:var(--green); }
@@ -55,15 +69,15 @@ tr:hover td { background:#fffaf0; }
 .notice { padding:10px 12px; border-radius:8px; background:var(--gold2); border:1px solid #e4bb59; color:#63430d; font-size:13px; margin-top:10px; }
 .small { font-size:12px; color:var(--muted); }
 .progress { margin-top:8px; color:var(--muted); font-size:13px; white-space:pre-wrap; }
-.royal-link { color:var(--brand); font-weight:700; text-decoration:none; white-space:nowrap; }
+.royal-link { color:var(--brand); font-weight:900; text-decoration:none; white-space:nowrap; }
 .royal-link:hover { text-decoration:underline; }
 .offer-detail-list { margin-top:6px; color:var(--muted); line-height:1.45; min-width:220px; }
 details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 .mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
-.utility-buttons { display:grid; grid-template-columns:repeat(2, minmax(150px, 1fr)); gap:8px; max-width:420px; }
-.utility-buttons button { width:100%; padding:7px 9px; font-size:12px; min-height:36px; white-space:normal; line-height:1.15; }
-.utility-buttons .success { grid-column:1 / -1; font-size:13px; min-height:40px; }
+.utility-buttons { display:grid; grid-template-columns:repeat(4, minmax(150px, 1fr)); gap:10px; width:100%; }
+.utility-buttons button { width:100%; padding:10px 11px; font-size:12px; min-height:42px; white-space:normal; line-height:1.15; }
+.utility-buttons .success { background:#007e8f; border-color:#007e8f; }
 .saved-list-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
 [hidden] { display:none !important; }
 .modal-backdrop { position:fixed; inset:0; background:rgba(7,24,50,.58); z-index:10; display:flex; align-items:center; justify-content:center; padding:18px; }
@@ -71,16 +85,24 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 .modal-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .modal-head h2 { margin:0 0 4px; font-size:18px; }
 .code-table { min-width:720px; }
-@media (max-width:900px) { .grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); } main { padding:12px; } .brand-bar { padding:18px 16px; } header h1 { font-size:24px; } .logo-mark { width:48px; height:48px; } }
+@media (max-width:900px) { .grid { grid-template-columns: repeat(2, minmax(150px, 1fr)); } main { padding-left:12px; padding-right:12px; } .top-nav { padding:12px 16px; } .brand-bar { grid-template-columns:auto minmax(0,1fr); padding:24px 16px 18px; } .hero-badge { grid-column:1 / -1; justify-self:start; width:100%; } header h1 { font-size:30px; } .logo-mark { width:52px; height:52px; } .utility-buttons { grid-template-columns:repeat(2, minmax(150px, 1fr)); } }
 @media (max-width:700px) {
   body { background:#eef2f8; }
-  header { border-bottom-width:4px; }
-  .brand-bar { align-items:flex-start; gap:12px; padding:16px 12px; }
+  header { padding-bottom:42px; }
+  .top-nav { display:block; padding:10px 12px; }
+  .top-links { gap:10px; font-size:10px; margin-bottom:10px; }
+  .phone-pill { display:inline-block; font-size:11px; }
+  .brand-bar { align-items:flex-start; gap:12px; padding:18px 12px 14px; }
   .logo-mark { width:42px; height:42px; padding:7px; }
   header h1 { font-size:20px; line-height:1.15; }
   header p { font-size:12px; line-height:1.35; }
-  main { padding:10px; }
+  .hero-badge { padding:11px; min-width:0; }
+  .hero-badge .value { font-size:17px; }
+  main { margin-top:-30px; padding:10px; }
   .card { padding:12px; border-radius:8px; margin-bottom:10px; box-shadow:0 8px 18px rgba(0,24,113,.08); }
+  .results-card { padding:0; }
+  .section-head { padding:12px 12px 0; }
+  .section-title { font-size:16px; }
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; }
   .stat { padding:10px; border-radius:7px; }
   .stat .label { font-size:10px; line-height:1.2; }
@@ -91,8 +113,9 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
   .control { width:100%; }
   input[type="text"], select, input[type="file"], button { width:100%; min-width:0; max-width:none; font-size:16px; }
   button { min-height:42px; }
-  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-  .tab { min-height:44px; padding:9px 8px; }
+  .tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:12px; }
+  .tab { min-height:44px; padding:9px 8px; border:1px solid #aab6d1; border-radius:6px; margin:0; }
+  .filter-panel { padding:12px; }
   .table-wrap { max-height:none; overflow:visible; border:0; background:transparent; }
   table, .code-table { min-width:0; width:100%; border-collapse:separate; border-spacing:0 10px; }
   table thead { display:none; }
@@ -101,7 +124,7 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
   table td { border:0; border-bottom:1px solid #edf1f8; padding:8px 10px; font-size:13px; }
   table td:last-child { border-bottom:0; }
   table td::before { content:attr(data-label); display:block; color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; margin-bottom:3px; }
-  table td[data-label="Save"], table td[data-label="Remove"] { background:#f7f9fd; }
+  table td[data-label="Save"], table td[data-label="Select"], table td[data-label="Remove"], table td[data-label="Actions"] { background:#f7f9fd; }
   #dataTable td[data-mobile-hide="true"] { display:none; }
   .mini-button { width:auto; min-height:34px; }
   .saved-list-head { display:block; }
@@ -115,6 +138,15 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 </head>
 <body>
 <header>
+  <div class="top-nav">
+    <div class="top-links">
+      <span>Find A Cruise</span>
+      <span>Deals</span>
+      <span>Ships</span>
+      <span>Club Royale</span>
+    </div>
+    <div class="phone-pill">Casino Booking Hotline (888) 561-2234</div>
+  </div>
   <div class="brand-bar">
     <img class="logo-mark" src="royal-logo.svg" alt="Royal Caribbean crown and anchor logo" />
     <div class="brand-text">
@@ -122,11 +154,21 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
       <h1>Club Royale Casino Offer Matcher</h1>
       <p>Review Casino Cruise Offers with the ability to sort and save for future reference.</p>
     </div>
+    <div class="hero-badge">
+      <div class="label">Casino Cruise Planner</div>
+      <div class="value">Offers + Upgrades</div>
+    </div>
   </div>
 </header>
 <main>
-  <section class="card">
-    <div class="controls" style="margin-top:12px;">
+  <section class="card quick-actions-card">
+    <div class="section-head" style="padding:0 0 14px;">
+      <div>
+        <h2 class="section-title">Plan Your Casino Cruise</h2>
+        <p class="section-subtitle">Upload, compare, export, and manage Club Royale offer data.</p>
+      </div>
+    </div>
+    <div class="controls">
       <div class="utility-buttons">
         <button class="success" onclick="openUploadOffers()">Upload New Offer PDFs</button>
         <button class="secondary" onclick="generateCurrentViewPdf()">Generate Current View PDF</button>
@@ -140,14 +182,21 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
     </div>
   </section>
 
-  <section class="card">
+  <section class="card results-card">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Cruise Offer Search</h2>
+        <p class="section-subtitle">Filter available sailings, select cruises, and prepare booking details.</p>
+      </div>
+      <div class="small" id="resultCount"></div>
+    </div>
     <div class="tabs">
       <button class="tab active" data-view="individual" onclick="setView('individual')">Individual Offers</button>
       <button class="tab" data-view="alaskaIndividual" onclick="setView('alaskaIndividual')">Alaska Individual Offers</button>
       <button class="tab" data-view="matches" onclick="setView('matches')">Matching Offers</button>
       <button class="tab" data-view="alaskaMatches" onclick="setView('alaskaMatches')">Matching Alaska Offers</button>
     </div>
-    <div class="controls" style="margin-bottom:12px;">
+    <div class="controls filter-panel">
       <div class="control"><label>Owner</label><select id="personFilter" onchange="render()"><option value="">All</option><option>Greg</option><option>Janet</option></select></div>
       <div class="control"><label>Main Offer</label><select id="mainOfferFilter" onchange="render()"><option value="">All</option></select></div>
       <div class="control"><label>Sail Month</label><select id="monthFilter" onchange="render()"><option value="">All</option></select></div>
@@ -159,7 +208,6 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
       <button class="secondary" onclick="resetFilters()">Reset Filters</button>
       <button class="secondary" onclick="openSavedOffers()">Show Selected Cruises</button>
     </div>
-    <div class="small" id="resultCount"></div>
     <div class="table-wrap"><table id="dataTable"></table></div>
   </section>
 </main>
