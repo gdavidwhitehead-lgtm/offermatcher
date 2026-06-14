@@ -417,26 +417,34 @@ function buildMatches(rows) {
   });
   const out=[];
   for (const [k, list] of groups.entries()) {
-    const greg = list.filter(r => r.Person === 'Greg');
-    const janet = list.filter(r => r.Person === 'Janet');
+    const gregAll = list.filter(r => r.Person === 'Greg');
+    const janetAll = list.filter(r => r.Person === 'Janet');
+    const pairKey = r => [r['Offer Code'], r['Sail Date']].join('|');
+    const gregPairs = new Set(gregAll.map(pairKey));
+    const commonPairs = new Set(janetAll.map(pairKey).filter(key => gregPairs.has(key)));
+    if (!commonPairs.size) continue;
+    const exactRows = list.filter(r => commonPairs.has(pairKey(r)));
+    const greg = exactRows.filter(r => r.Person === 'Greg');
+    const janet = exactRows.filter(r => r.Person === 'Janet');
     if (!greg.length || !janet.length) continue;
-    const sample = [...list].sort((a,b) => compare(a['Sail Date'], b['Sail Date'], 'Sail Date'))[0];
+    const sample = [...exactRows].sort((a,b) => compare(a['Sail Date'], b['Sail Date'], 'Sail Date'))[0];
     const gb = bestRoom(greg), jb = bestRoom(janet);
     const sharedRoomGroup = roomByRank[Math.max(rankRoom(gb), rankRoom(jb))] || '';
+    const exactOfferCodes = offerCodeList(exactRows);
     out.push({
-      'Main Offer': mainOfferList(list), 'Sail Date': sailDateList(list), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
+      'Main Offer': mainOfferList(exactRows), 'Sail Date': sailDateList(exactRows), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
       'Itinerary': sample['Itinerary'],
       'Room Group': sharedRoomGroup,
-      'Greg Offer Code': offerCodeList(greg),
-      'Janet Offer Code': offerCodeList(janet),
+      'Greg Offer Code': exactOfferCodes,
+      'Janet Offer Code': exactOfferCodes,
       'Greg Offer(s) / Room(s)': offerRoomList(greg),
       'Janet Offer(s) / Room(s)': offerRoomList(janet),
-      'Offer Code': (greg[0] || janet[0])['Offer Code'],
+      'Offer Code': exactOfferCodes,
       'Greg Best Room': gb, 'Janet Best Room': jb, 'Expected Paired Upgrade': expectedUpgrade(gb,jb),
       'Alaska?': isAlaska(sample) ? 'Yes' : 'No', 'Vancouver/Seattle Alaska?': (isAlaska(sample) && /vancouver|seattle/i.test(sample['Departure Port'])) ? 'Yes' : 'No',
-      '_sailDates': sailDateValues(list),
+      '_sailDates': sailDateValues(exactRows),
       '_linkRow': sample,
-      '_search': list.map(r => Object.values(r).join(' ')).join(' ')
+      '_search': exactRows.map(r => Object.values(r).join(' ')).join(' ')
     });
   }
   return out;
