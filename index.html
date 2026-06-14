@@ -595,6 +595,7 @@ function royalCaribbeanUrl(row) {
     sailDate,
     packageCode: details.packageCode,
     country: 'USA',
+    currency: 'USD',
     search: `startDate:${range.start}~${range.end}`
   });
   if (details.groupId) params.set('groupId', details.groupId);
@@ -607,6 +608,8 @@ function googleItinerarySearchUrl(row) {
     displayDate(row['Sail Date']),
     row['Departure Port'],
     row['Itinerary'],
+    'country USA currency USD',
+    '-country=GBR',
     'site:royalcaribbean.com/itinerary'
   ].filter(Boolean).join(' ');
   return `https://www.google.com/search?btnI=1&q=${encodeURIComponent(query)}`;
