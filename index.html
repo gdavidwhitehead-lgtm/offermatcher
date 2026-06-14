@@ -57,6 +57,8 @@ tr:hover td { background:#fffaf0; }
 .progress { margin-top:8px; color:var(--muted); font-size:13px; white-space:pre-wrap; }
 .royal-link { color:var(--brand); font-weight:700; text-decoration:none; white-space:nowrap; }
 .royal-link:hover { text-decoration:underline; }
+.offer-detail-list { margin-top:6px; color:var(--muted); line-height:1.45; min-width:220px; }
+details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 .mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
 .utility-buttons { display:grid; grid-template-columns:repeat(2, minmax(150px, 1fr)); gap:8px; max-width:420px; }
@@ -329,23 +331,70 @@ function isAlaska(row) {
 }
 function keyText(s) { return String(s||'').toLowerCase().replace(/advenighture/g,'adventure').replace(/\bglac\b/g,'glacier').replace(/[^a-z0-9]+/g,' ').trim(); }
 function matchKey(r) { return [r['Main Offer'], r['Sail Date'], keyText(r['Ship']), keyText(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
+function sailingKey(r) { return [r['Sail Date'], keyText(r['Ship']), keyText(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
+function individualSailingKey(r) { return [r['Person'], sailingKey(r)].join('|'); }
 function bestRoom(rows) {
   let best = '';
   for (const r of rows) if (rankRoom(r['Room Group']) > rankRoom(best)) best = r['Room Group'];
   return best;
+}
+function bestOfferRow(rows) {
+  return [...rows].sort((a,b) => rankRoom(b['Room Group']) - rankRoom(a['Room Group']) || String(a['Offer Code']).localeCompare(String(b['Offer Code'])))[0] || {};
+}
+function sortedOfferRows(rows) {
+  return [...rows].sort((a,b) => rankRoom(b['Room Group']) - rankRoom(a['Room Group']) || String(a['Offer Code']).localeCompare(String(b['Offer Code'])));
 }
 function offerRoomList(rows) {
   const bits = [...new Set(rows.map(r => `${r['Offer Code']} — ${r['Room Type']}`))];
   return bits.join('; ');
 }
 function offerCodeList(rows) {
-  return [...new Set(rows.map(r => r['Offer Code']).filter(Boolean))].join('; ');
+  return [...new Set(sortedOfferRows(rows).map(r => r['Offer Code']).filter(Boolean))].join('; ');
+}
+function mainOfferList(rows) {
+  return [...new Set(sortedOfferRows(rows).map(r => r['Main Offer']).filter(Boolean))].join('; ');
+}
+function offerDetailsText(row) {
+  const rows = row['_offers'] || [row];
+  return sortedOfferRows(rows).map(r => `${r['Offer Code']} - ${r['Room Type']}`).join('; ');
+}
+function offerDetailsHtml(row) {
+  const rows = row['_offers'] || [row];
+  const details = sortedOfferRows(rows).map(r => {
+    const room = [r['Room Type'], r['Offer Type']].filter(Boolean).join(' · ');
+    return `<div><strong>${escapeHtml(r['Offer Code'])}</strong> — ${escapeHtml(room)}</div>`;
+  }).join('');
+  return `<details><summary>${rows.length.toLocaleString()} offer${rows.length === 1 ? '' : 's'}</summary><div class="offer-detail-list">${details}</div></details>`;
+}
+function buildIndividualSailings(rows) {
+  const groups = new Map();
+  rows.forEach(r => {
+    if ((r['Offer Type']||'').toLowerCase() !== 'cruise fare for 2 guests') return;
+    const k = individualSailingKey(r);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(r);
+  });
+  return [...groups.values()].map(list => {
+    const best = bestOfferRow(list);
+    const row = cleanRow({
+      ...best,
+      'Room Type': best['Room Type'],
+      'Room Group': best['Room Group'],
+      '_offers': sortedOfferRows(list),
+      '_search': list.map(r => Object.values(r).join(' ')).join(' ')
+    });
+    row['Main Offer'] = mainOfferList(list);
+    row['Offer Code'] = offerCodeList(list);
+    row['_offers'] = sortedOfferRows(list);
+    row['_search'] = list.map(r => Object.values(r).join(' ')).join(' ');
+    return row;
+  });
 }
 function buildMatches(rows) {
   const groups = new Map();
   rows.forEach(r => {
     if ((r['Offer Type']||'').toLowerCase() !== 'cruise fare for 2 guests') return;
-    const k = matchKey(r);
+    const k = sailingKey(r);
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(r);
   });
@@ -358,7 +407,7 @@ function buildMatches(rows) {
     const gb = bestRoom(greg), jb = bestRoom(janet);
     const sharedRoomGroup = roomByRank[Math.max(rankRoom(gb), rankRoom(jb))] || '';
     out.push({
-      'Main Offer': sample['Main Offer'], 'Sail Date': sample['Sail Date'], 'Ship': sample['Ship'], 'Departure Port': sample['Departure Port'],
+      'Main Offer': mainOfferList(list), 'Sail Date': sample['Sail Date'], 'Ship': sample['Ship'], 'Departure Port': sample['Departure Port'],
       'Itinerary': sample['Itinerary'],
       'Room Group': sharedRoomGroup,
       'Greg Offer Code': offerCodeList(greg),
@@ -382,8 +431,9 @@ function isIndividualView() {
 function filteredRows() {
   const rows = allRows();
   const matches = buildMatches(rows);
-  let data = isMatchView() ? matches : rows;
-  if (currentView === 'alaskaIndividual') data = rows.filter(r => r['Alaska?']==='Yes');
+  const individual = buildIndividualSailings(rows);
+  let data = isMatchView() ? matches : individual;
+  if (currentView === 'alaskaIndividual') data = individual.filter(r => r['Alaska?']==='Yes');
   if (currentView === 'alaskaMatches') data = matches.filter(r => r['Alaska?']==='Yes');
   const person = document.getElementById('personFilter').value;
   const main = document.getElementById('mainOfferFilter').value;
@@ -394,7 +444,7 @@ function filteredRows() {
   const ship = document.getElementById('shipFilter').value;
   const sortFilter = document.getElementById('sortFilter').value;
   data = data.filter(r => {
-    if (main && r['Main Offer'] !== main) return false;
+    if (main && !rowHasMainOffer(r, main)) return false;
     if (month && sailMonthKey(r['Sail Date']) !== month) return false;
     if (length && cruiseLengthKey(r['Itinerary']) !== length) return false;
     if (port && departurePortKey(r['Departure Port']) !== port) return false;
@@ -419,6 +469,11 @@ function filteredRows() {
   }
   return data;
 }
+function rowHasMainOffer(row, main) {
+  if (!main) return true;
+  if (row['Main Offer'] === main) return true;
+  return (row['_offers'] || []).some(r => r['Main Offer'] === main);
+}
 function compare(a,b,key) {
   if (key && /date/i.test(key)) return String(a||'').localeCompare(String(b||''));
   const na = parseFloat(a), nb = parseFloat(b);
@@ -433,13 +488,19 @@ function setView(v) {
 }
 function columnsForView() {
   if (isMatchView()) return ['Itinerary Link','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Greg Offer Code','Janet Offer Code','Greg Best Room','Janet Best Room','Expected Paired Upgrade'];
-  return ['Itinerary Link','Person','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Type','Room Group','Offer Type'];
+  return ['Itinerary Link','Person','Offer Details','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Type','Room Group','Offer Type'];
 }
 function savedColumns() {
   return ['Source View','Person','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Expected Paired Upgrade'];
 }
 function mobileVisibleColumn(c) {
   return ['Itinerary Link','Sail Date','Ship','Departure Port','Itinerary','Room Type'].includes(c);
+}
+function cellText(row, c) {
+  if (c === 'Itinerary Link') return royalCaribbeanUrl(row);
+  if (c === 'Offer Details') return offerDetailsText(row);
+  if (c === 'Sail Date') return displayDate(row[c]);
+  return row[c] || '';
 }
 function badge(value) {
   if (value === 'Yes') return '<span class="badge green">Yes</span>';
@@ -463,6 +524,7 @@ function render() {
     html += '<tr><td data-label="Save">' + (saved ? '<button class="mini-button saved" disabled>Saved</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Save</button>`) + '</td>' + cols.map(c => {
       const mobileHidden = mobileVisibleColumn(c) ? 'false' : 'true';
       if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${royalItineraryLinkHtml(r)}</td>`;
+      if (c === 'Offer Details') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${offerDetailsHtml(r)}</td>`;
       let val = r[c] || '';
       if (c === 'Sail Date') val = displayDate(val);
       return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${badge(val)}</td>`;
@@ -1034,7 +1096,7 @@ function safeFilename(name) {
 function openPrintablePdfReport(data, cols = columnsForView(), title = `Club Royale ${viewName(currentView)}`) {
   const generated = new Date().toLocaleString();
   const rowsHtml = data.map(r => '<tr>' + cols.map(c => {
-    const val = c === 'Itinerary Link' ? royalCaribbeanUrl(r) : c === 'Sail Date' ? displayDate(r[c]) : r[c];
+    const val = cellText(r, c);
     return `<td>${escapeHtml(val || '')}</td>`;
   }).join('') + '</tr>').join('');
   const html = `<!DOCTYPE html><html><head><title>${escapeHtml(title)}</title><style>
@@ -1061,7 +1123,7 @@ function openPrintablePdfReport(data, cols = columnsForView(), title = `Club Roy
 }
 function currentCsv() {
   const data = filteredRows(); const cols = columnsForView();
-  return [cols.join(',')].concat(data.map(r => cols.map(c => csvCell(c==='Itinerary Link'?royalCaribbeanUrl(r):c==='Sail Date'?displayDate(r[c]):r[c])).join(','))).join('\n');
+  return [cols.join(',')].concat(data.map(r => cols.map(c => csvCell(cellText(r, c))).join(','))).join('\n');
 }
 function downloadCsv(csv) {
   const blob = new Blob([csv], {type:'text/csv'});
@@ -1084,7 +1146,7 @@ function makePdfBlob(data, cols = columnsForView(), title = `Club Royale ${viewN
   ];
   data.forEach((r, idx) => {
     const rowText = cols.map(c => {
-      const val = c === 'Itinerary Link' ? royalCaribbeanUrl(r) : c === 'Sail Date' ? displayDate(r[c]) : r[c];
+      const val = cellText(r, c);
       return `${c}: ${String(val || '').replace(/\s+/g, ' ').trim()}`;
     }).join(' | ');
     wrapPdfLine(`${idx + 1}. ${rowText}`, 160).forEach(line => lines.push(line));
