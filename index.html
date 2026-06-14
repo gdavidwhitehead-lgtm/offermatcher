@@ -71,6 +71,10 @@ tr:hover td { background:#fffaf0; }
 .royal-link { color:var(--brand); font-weight:900; text-decoration:none; white-space:nowrap; }
 .royal-link:hover { text-decoration:underline; }
 .offer-detail-list { margin-top:6px; color:var(--muted); line-height:1.45; min-width:220px; }
+.date-popover { position:relative; display:inline-block; }
+.date-popover summary { list-style:none; }
+.date-popover summary::-webkit-details-marker { display:none; }
+.date-popover .offer-detail-list { position:absolute; z-index:6; top:100%; left:0; min-width:190px; max-height:260px; overflow:auto; margin-top:6px; padding:10px 12px; background:#fff; border:1px solid var(--line); border-top:4px solid var(--gold); border-radius:6px; box-shadow:0 14px 32px rgba(6,26,63,.18); white-space:nowrap; }
 details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 .mini-button { padding:5px 8px; font-size:12px; border-radius:5px; white-space:nowrap; }
 .mini-button.saved { background:#eef2f8; color:#58657a; border-color:#cfd8e8; cursor:default; }
@@ -122,6 +126,7 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
   table td:last-child { border-bottom:0; }
   table td::before { content:attr(data-label); display:block; color:var(--muted); font-size:11px; font-weight:800; text-transform:uppercase; margin-bottom:3px; }
   table td[data-label="Save"], table td[data-label="Select"], table td[data-label="Remove"], table td[data-label="Actions"] { background:#f7f9fd; }
+  .date-popover .offer-detail-list { position:static; max-height:none; white-space:normal; box-shadow:none; }
   #dataTable td[data-mobile-hide="true"] { display:none; }
   .mini-button { width:auto; min-height:34px; }
   .saved-list-head { display:block; }
@@ -412,7 +417,7 @@ function sailDateHtml(row) {
   const dates = rowSailDates(row);
   if (dates.length <= 1) return escapeHtml(displayDate(dates[0] || row['Sail Date']));
   const details = dates.map(d => `<div>${escapeHtml(displayDate(d))}</div>`).join('');
-  return `<details><summary>${dates.length.toLocaleString()} dates</summary><div class="offer-detail-list">${details}</div></details>`;
+  return `<details class="date-popover"><summary>${dates.length.toLocaleString()} dates</summary><div class="offer-detail-list">${details}</div></details>`;
 }
 function offerDetailsText(row) {
   const rows = row['_offers'] || [row];
