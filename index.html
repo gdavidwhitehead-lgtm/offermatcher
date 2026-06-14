@@ -331,7 +331,8 @@ function isAlaska(row) {
 }
 function keyText(s) { return String(s||'').toLowerCase().replace(/advenighture/g,'adventure').replace(/\bglac\b/g,'glacier').replace(/[^a-z0-9]+/g,' ').trim(); }
 function matchKey(r) { return [r['Main Offer'], r['Sail Date'], keyText(r['Ship']), keyText(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
-function sailingKey(r) { return [r['Sail Date'], keyText(r['Ship']), keyText(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
+function sailingKey(r) { return [r['Sail Date'], keyText(r['Ship']), departurePortKey(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
+function itineraryGroupKey(r) { return [keyText(r['Ship']), departurePortKey(r['Departure Port']), keyText(r['Itinerary'])].join('|'); }
 function individualSailingKey(r) { return [r['Person'], sailingKey(r)].join('|'); }
 function bestRoom(rows) {
   let best = '';
@@ -353,6 +354,22 @@ function offerCodeList(rows) {
 }
 function mainOfferList(rows) {
   return [...new Set(sortedOfferRows(rows).map(r => r['Main Offer']).filter(Boolean))].join('; ');
+}
+function sailDateValues(rows) {
+  return [...new Set(rows.map(r => r['Sail Date']).filter(Boolean))].sort();
+}
+function sailDateList(rows) {
+  return sailDateValues(rows).map(displayDate).join('; ');
+}
+function rowSailDates(row) {
+  if (Array.isArray(row['_sailDates']) && row['_sailDates'].length) return row['_sailDates'];
+  return row['Sail Date'] ? [row['Sail Date']] : [];
+}
+function sailDateHtml(row) {
+  const dates = rowSailDates(row);
+  if (dates.length <= 1) return escapeHtml(displayDate(dates[0] || row['Sail Date']));
+  const details = dates.map(d => `<div>${escapeHtml(displayDate(d))}</div>`).join('');
+  return `<details><summary>${dates.length.toLocaleString()} dates</summary><div class="offer-detail-list">${details}</div></details>`;
 }
 function offerDetailsText(row) {
   const rows = row['_offers'] || [row];
@@ -394,7 +411,7 @@ function buildMatches(rows) {
   const groups = new Map();
   rows.forEach(r => {
     if ((r['Offer Type']||'').toLowerCase() !== 'cruise fare for 2 guests') return;
-    const k = sailingKey(r);
+    const k = itineraryGroupKey(r);
     if (!groups.has(k)) groups.set(k, []);
     groups.get(k).push(r);
   });
@@ -403,11 +420,11 @@ function buildMatches(rows) {
     const greg = list.filter(r => r.Person === 'Greg');
     const janet = list.filter(r => r.Person === 'Janet');
     if (!greg.length || !janet.length) continue;
-    const sample = list[0];
+    const sample = [...list].sort((a,b) => compare(a['Sail Date'], b['Sail Date'], 'Sail Date'))[0];
     const gb = bestRoom(greg), jb = bestRoom(janet);
     const sharedRoomGroup = roomByRank[Math.max(rankRoom(gb), rankRoom(jb))] || '';
     out.push({
-      'Main Offer': mainOfferList(list), 'Sail Date': sample['Sail Date'], 'Ship': sample['Ship'], 'Departure Port': sample['Departure Port'],
+      'Main Offer': mainOfferList(list), 'Sail Date': sailDateList(list), 'Ship': sample['Ship'], 'Departure Port': departurePortLabel(sample['Departure Port']),
       'Itinerary': sample['Itinerary'],
       'Room Group': sharedRoomGroup,
       'Greg Offer Code': offerCodeList(greg),
@@ -417,6 +434,8 @@ function buildMatches(rows) {
       'Offer Code': (greg[0] || janet[0])['Offer Code'],
       'Greg Best Room': gb, 'Janet Best Room': jb, 'Expected Paired Upgrade': expectedUpgrade(gb,jb),
       'Alaska?': isAlaska(sample) ? 'Yes' : 'No', 'Vancouver/Seattle Alaska?': (isAlaska(sample) && /vancouver|seattle/i.test(sample['Departure Port'])) ? 'Yes' : 'No',
+      '_sailDates': sailDateValues(list),
+      '_linkRow': sample,
       '_search': list.map(r => Object.values(r).join(' ')).join(' ')
     });
   }
@@ -445,7 +464,7 @@ function filteredRows() {
   const sortFilter = document.getElementById('sortFilter').value;
   data = data.filter(r => {
     if (main && !rowHasMainOffer(r, main)) return false;
-    if (month && sailMonthKey(r['Sail Date']) !== month) return false;
+    if (month && !rowSailDates(r).some(date => sailMonthKey(date) === month)) return false;
     if (length && cruiseLengthKey(r['Itinerary']) !== length) return false;
     if (port && departurePortKey(r['Departure Port']) !== port) return false;
     if (ship && r['Ship'] !== ship) return false;
@@ -499,7 +518,7 @@ function mobileVisibleColumn(c) {
 function cellText(row, c) {
   if (c === 'Itinerary Link') return royalCaribbeanUrl(row);
   if (c === 'Offer Details') return offerDetailsText(row);
-  if (c === 'Sail Date') return displayDate(row[c]);
+  if (c === 'Sail Date') return row['_sailDates'] ? rowSailDates(row).map(displayDate).join('; ') : displayDate(row[c]);
   return row[c] || '';
 }
 function badge(value) {
@@ -525,8 +544,8 @@ function render() {
       const mobileHidden = mobileVisibleColumn(c) ? 'false' : 'true';
       if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${royalItineraryLinkHtml(r)}</td>`;
       if (c === 'Offer Details') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${offerDetailsHtml(r)}</td>`;
+      if (c === 'Sail Date') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${sailDateHtml(r)}</td>`;
       let val = r[c] || '';
-      if (c === 'Sail Date') val = displayDate(val);
       return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${badge(val)}</td>`;
     }).join('') + '</tr>';
   }
@@ -544,7 +563,11 @@ function royalItineraryLinkHtml(row) {
   const label = details ? 'Itinerary' : 'Find Itinerary';
   return url ? `<a class="royal-link" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${label}</a>` : '';
 }
+function sourceRow(row) {
+  return row && row['_linkRow'] ? row['_linkRow'] : row;
+}
 function royalCaribbeanUrl(row) {
+  row = sourceRow(row);
   const sailDate = row['Sail Date'];
   const nights = (String(row['Itinerary'] || '').match(/^\s*(\d+)\s*Night/i) || [])[1];
   const title = itineraryTitle(row);
@@ -567,6 +590,7 @@ function royalCaribbeanUrl(row) {
   return `https://www.royalcaribbean.com/itinerary/${slug}?${params.toString()}`;
 }
 function googleItinerarySearchUrl(row) {
+  row = sourceRow(row);
   const query = [
     row['Ship'],
     displayDate(row['Sail Date']),
@@ -577,7 +601,7 @@ function googleItinerarySearchUrl(row) {
   return `https://www.google.com/search?btnI=1&q=${encodeURIComponent(query)}`;
 }
 function royalPackageDetails(row) {
-  return ROYAL_PACKAGE_CODES[packageKey(row)] || null;
+  return ROYAL_PACKAGE_CODES[packageKey(sourceRow(row))] || null;
 }
 function packageKey(row) {
   return [
