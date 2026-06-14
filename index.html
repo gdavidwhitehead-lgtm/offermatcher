@@ -157,7 +157,7 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
       <div class="control"><label>Ship</label><select id="shipFilter" onchange="render()"><option value="">All</option></select></div>
       <div class="control"><label>Sort Offers</label><select id="sortFilter" onchange="render()"><option value="">Sail Date</option><option value="portShip">Departure Port, then Ship</option><option value="shipPort">Ship, then Departure Port</option></select></div>
       <button class="secondary" onclick="resetFilters()">Reset Filters</button>
-      <button class="secondary" onclick="openSavedOffers()">Show Saved Offers</button>
+      <button class="secondary" onclick="openSavedOffers()">Show Selected Cruises</button>
     </div>
     <div class="small" id="resultCount"></div>
     <div class="table-wrap"><table id="dataTable"></table></div>
@@ -197,12 +197,12 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
   <div class="modal-panel">
     <div class="modal-head">
       <div>
-        <h2>Saved Offer List</h2>
-        <div class="small" id="savedCount">0 offer(s) saved</div>
+        <h2>Selected Cruises</h2>
+        <div class="small" id="savedCount">0 cruise(s) selected</div>
       </div>
       <div class="controls">
-        <button class="secondary" onclick="generateSavedOffersPdf()">Generate Saved List PDF</button>
-        <button class="danger" onclick="clearSavedOffers()">Clear Saved List</button>
+        <button class="secondary" onclick="generateSavedOffersPdf()">Generate Selected List PDF</button>
+        <button class="danger" onclick="clearSavedOffers()">Clear Selected List</button>
         <button class="secondary" onclick="closeSavedOffers()">Close</button>
       </div>
     </div>
@@ -230,6 +230,9 @@ const EMBEDDED_SAVED_OFFERS = [];
 const ROW_STORAGE_KEY = 'clubRoyaleCurrentOfferRows_v2';
 const SAVED_STORAGE_KEY = 'clubRoyaleSavedOffers_v2';
 const STORAGE_READY_KEY = 'clubRoyaleOfferStorageReady_v2';
+const GREG_CROWN_ANCHOR = '390931319';
+const JANET_CROWN_ANCHOR = '391206488';
+const CASINO_BOOKING_HOTLINE = '(888) 561-2234';
 let sessionRows = [];
 let currentView = 'individual';
 let sortState = { key: 'Sail Date', dir: 1 };
@@ -490,6 +493,7 @@ function filteredRows() {
     }
     return true;
   });
+  data = data.filter(r => !isOfferSaved(r));
   if (sortFilter === 'portShip') {
     data.sort((a,b) => compare(a['Departure Port'], b['Departure Port'], 'Departure Port') || compare(a['Ship'], b['Ship'], 'Ship') || compare(a['Sail Date'], b['Sail Date'], 'Sail Date'));
   } else if (sortFilter === 'shipPort') {
@@ -503,6 +507,24 @@ function rowHasMainOffer(row, main) {
   if (!main) return true;
   if (row['Main Offer'] === main) return true;
   return (row['_offers'] || []).some(r => r['Main Offer'] === main);
+}
+function offerCodesForRow(row) {
+  const values = [row['Offer Code'], row['Greg Offer Code'], row['Janet Offer Code']];
+  (row['_offers'] || []).forEach(r => values.push(r['Offer Code']));
+  return [...new Set(values
+    .filter(Boolean)
+    .flatMap(v => String(v).split(/\s*\/\s*|\s*;\s*/))
+    .map(normalizeOfferCode)
+    .filter(Boolean))];
+}
+function rowMatchesSavedSelection(row, saved) {
+  if (itineraryGroupKey(row) !== itineraryGroupKey(saved)) return false;
+  const rowCodes = new Set(offerCodesForRow(row));
+  const savedCodes = offerCodesForRow(saved);
+  if (!savedCodes.some(code => rowCodes.has(code))) return false;
+  const rowDates = new Set(rowSailDates(row));
+  const savedDates = rowSailDates(saved);
+  return !rowDates.size || !savedDates.length || savedDates.some(date => rowDates.has(date));
 }
 function compare(a,b,key) {
   if (key && /date/i.test(key)) return String(a||'').localeCompare(String(b||''));
@@ -521,7 +543,7 @@ function columnsForView() {
   return ['Itinerary Link','Person','Offer Details','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Type','Room Group','Offer Type'];
 }
 function savedColumns() {
-  return ['Source View','Person','Offer Code','Main Offer','Sail Date','Ship','Departure Port','Itinerary','Room Group','Expected Paired Upgrade'];
+  return ['Booking Status','Offer Code','Ship','Departure Port','Sail Date','Itinerary','Room Group','Expected Paired Upgrade','Greg Crown & Anchor #','Janet Crown & Anchor #','Casino Booking Hotline'];
 }
 function mobileVisibleColumn(c) {
   return ['Itinerary Link','Sail Date','Ship','Departure Port','Itinerary','Room Type'].includes(c);
@@ -530,6 +552,10 @@ function cellText(row, c) {
   if (c === 'Itinerary Link') return royalCaribbeanUrl(row);
   if (c === 'Offer Details') return offerDetailsText(row);
   if (c === 'Sail Date') return row['_sailDates'] ? rowSailDates(row).map(displayDate).join('; ') : displayDate(row[c]);
+  if (c === 'Booking Status') return row['Booking Status'] || 'Selected';
+  if (c === 'Greg Crown & Anchor #') return GREG_CROWN_ANCHOR;
+  if (c === 'Janet Crown & Anchor #') return JANET_CROWN_ANCHOR;
+  if (c === 'Casino Booking Hotline') return CASINO_BOOKING_HOTLINE;
   return row[c] || '';
 }
 function badge(value) {
@@ -547,11 +573,11 @@ function render() {
   const cols = columnsForView();
   document.getElementById('resultCount').textContent = `${data.length.toLocaleString()} row(s) shown`;
   const table = document.getElementById('dataTable');
-  let html = '<thead><tr><th>Save</th>' + cols.map(c => `<th onclick="sortBy('${c.replace(/'/g,"\'")}')">${escapeHtml(c)} ${sortState.key===c ? (sortState.dir>0?'▲':'▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
+  let html = '<thead><tr><th>Select</th>' + cols.map(c => `<th onclick="sortBy('${c.replace(/'/g,"\'")}')">${escapeHtml(c)} ${sortState.key===c ? (sortState.dir>0?'▲':'▼') : ''}</th>`).join('') + '</tr></thead><tbody>';
   for (let i = 0; i < data.length; i++) {
     const r = data[i];
     const saved = isOfferSaved(r);
-    html += '<tr><td data-label="Save">' + (saved ? '<button class="mini-button saved" disabled>Saved</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Save</button>`) + '</td>' + cols.map(c => {
+    html += '<tr><td data-label="Select">' + (saved ? '<button class="mini-button saved" disabled>Selected</button>' : `<button class="mini-button" onclick="saveOfferFromCurrentView(${i})">Select</button>`) + '</td>' + cols.map(c => {
       const mobileHidden = mobileVisibleColumn(c) ? 'false' : 'true';
       if (c === 'Itinerary Link') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${royalItineraryLinkHtml(r)}</td>`;
       if (c === 'Offer Details') return `<td data-label="${escapeHtml(c)}" data-mobile-hide="${mobileHidden}">${offerDetailsHtml(r)}</td>`;
@@ -1010,6 +1036,10 @@ function savedOfferSnapshot(row) {
   const copy = {...row};
   copy['_savedKey'] = offerSaveKey(row);
   copy['Source View'] = viewName(currentView);
+  copy['Booking Status'] = 'Selected';
+  copy['Greg Crown & Anchor #'] = GREG_CROWN_ANCHOR;
+  copy['Janet Crown & Anchor #'] = JANET_CROWN_ANCHOR;
+  copy['Casino Booking Hotline'] = CASINO_BOOKING_HOTLINE;
   if (isMatchView()) {
     copy['Person'] = 'Greg + Janet';
     copy['Offer Code'] = [copy['Greg Offer Code'], copy['Janet Offer Code']].filter(Boolean).join(' / ');
@@ -1034,7 +1064,7 @@ function offerSaveKey(row) {
 }
 function isOfferSaved(row) {
   const key = offerSaveKey(row);
-  return savedOffers.some(r => r['_savedKey'] === key);
+  return savedOffers.some(r => r['_savedKey'] === key || rowMatchesSavedSelection(row, r));
 }
 function removeSavedOffer(key) {
   savedOffers = savedOffers.filter(r => r['_savedKey'] !== key);
@@ -1042,9 +1072,20 @@ function removeSavedOffer(key) {
   renderSavedOffers();
   render();
 }
+function markSavedOfferForBooking(key) {
+  savedOffers = savedOffers.map(r => r['_savedKey'] === key ? {
+    ...r,
+    'Booking Status': 'Ready to Book',
+    'Greg Crown & Anchor #': GREG_CROWN_ANCHOR,
+    'Janet Crown & Anchor #': JANET_CROWN_ANCHOR,
+    'Casino Booking Hotline': CASINO_BOOKING_HOTLINE
+  } : r);
+  saveCurrentState();
+  renderSavedOffers();
+}
 function clearSavedOffers() {
   if (!savedOffers.length) return;
-  if (confirm('Clear the saved offer list?')) {
+  if (confirm('Clear the selected cruise list? These cruises will return to the main offer tables.')) {
     savedOffers = [];
     saveCurrentState();
     render();
@@ -1058,22 +1099,24 @@ function closeSavedOffers() {
   document.getElementById('savedOffersModal').hidden = true;
 }
 function generateSavedOffersPdf() {
-  if (!savedOffers.length) { alert('Save one or more offers first.'); return; }
-  openPrintablePdfReport(savedOffers, savedColumns(), 'Club Royale Saved Offer List');
+  if (!savedOffers.length) { alert('Select one or more cruises first.'); return; }
+  openPrintablePdfReport(savedOffers, savedColumns(), 'Club Royale Selected Cruises');
 }
 function renderSavedOffers() {
   const table = document.getElementById('savedTable');
-  document.getElementById('savedCount').textContent = `${savedOffers.length.toLocaleString()} offer(s) saved`;
+  document.getElementById('savedCount').textContent = `${savedOffers.length.toLocaleString()} cruise(s) selected`;
   const cols = savedColumns();
   if (!savedOffers.length) {
-    table.innerHTML = '<tbody><tr><td class="small" data-label="Saved Offers">No offers saved yet.</td></tr></tbody>';
+    table.innerHTML = '<tbody><tr><td class="small" data-label="Selected Cruises">No cruises selected yet.</td></tr></tbody>';
     return;
   }
-  let html = '<thead><tr><th>Remove</th>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr></thead><tbody>';
+  let html = '<thead><tr><th>Actions</th>' + cols.map(c => `<th>${escapeHtml(c)}</th>`).join('') + '</tr></thead><tbody>';
   savedOffers.forEach(r => {
-    html += `<tr><td data-label="Remove"><button class="mini-button secondary" onclick="removeSavedOffer('${escapeHtml(r['_savedKey'])}')">Remove</button></td>` + cols.map(c => {
-      let val = r[c] || '';
-      if (c === 'Sail Date') val = displayDate(val);
+    const key = escapeHtml(r['_savedKey']);
+    const isBooking = r['Booking Status'] === 'Ready to Book';
+    const actions = `${isBooking ? '<button class="mini-button saved" disabled>Ready</button>' : `<button class="mini-button" onclick="markSavedOfferForBooking('${key}')">Book</button>`} <button class="mini-button secondary" onclick="removeSavedOffer('${key}')">Not Booking</button>`;
+    html += `<tr><td data-label="Actions">${actions}</td>` + cols.map(c => {
+      const val = cellText(r, c);
       return `<td data-label="${escapeHtml(c)}">${badge(val)}</td>`;
     }).join('') + '</tr>';
   });
