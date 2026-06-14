@@ -16,8 +16,7 @@ body { margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--bg)
 header { position:relative; color:#fff; padding:0 0 76px; background:#061a3f; overflow:hidden; box-shadow:0 16px 34px rgba(6,26,63,.2); }
 header::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at 82% 16%, rgba(18,181,203,.38), transparent 34%), linear-gradient(135deg,#061a3f 0%,#001871 55%,#063a7a 100%); }
 header::after { content:""; position:absolute; inset:auto 0 0; height:6px; background:linear-gradient(90deg,var(--gold),#ffdd7a,var(--gold)); }
-.top-nav { position:relative; z-index:1; display:flex; align-items:center; justify-content:space-between; gap:18px; max-width:1500px; margin:0 auto; padding:14px 28px; border-bottom:1px solid rgba(255,255,255,.18); }
-.top-links { display:flex; gap:18px; flex-wrap:wrap; color:#dbe7ff; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.top-nav { position:relative; z-index:1; display:flex; align-items:center; justify-content:flex-end; gap:18px; max-width:1500px; margin:0 auto; padding:14px 28px; border-bottom:1px solid rgba(255,255,255,.18); }
 .phone-pill { border:1px solid rgba(246,200,95,.85); color:#fff; border-radius:999px; padding:7px 12px; font-weight:900; font-size:12px; background:rgba(255,255,255,.08); }
 .brand-bar { position:relative; z-index:1; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:18px; padding:34px 28px 22px; max-width:1500px; margin:0 auto; }
 .logo-mark { width:64px; height:64px; border-radius:50%; background:#fff; border:3px solid rgba(246,200,95,.98); padding:11px; box-shadow:0 12px 28px rgba(0,0,0,.28); flex:0 0 auto; }
@@ -90,7 +89,6 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
   body { background:#eef2f8; }
   header { padding-bottom:42px; }
   .top-nav { display:block; padding:10px 12px; }
-  .top-links { gap:10px; font-size:10px; margin-bottom:10px; }
   .phone-pill { display:inline-block; font-size:11px; }
   .brand-bar { align-items:flex-start; gap:12px; padding:18px 12px 14px; }
   .logo-mark { width:42px; height:42px; padding:7px; }
@@ -139,12 +137,6 @@ details summary { cursor:pointer; color:var(--brand); font-weight:800; }
 <body>
 <header>
   <div class="top-nav">
-    <div class="top-links">
-      <span>Find A Cruise</span>
-      <span>Deals</span>
-      <span>Ships</span>
-      <span>Club Royale</span>
-    </div>
     <div class="phone-pill">Casino Booking Hotline (888) 561-2234</div>
   </div>
   <div class="brand-bar">
